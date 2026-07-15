@@ -35,18 +35,17 @@ export function TopbarClock() {
         <Popover>
             <PopoverTrigger
                 render={
-                    <Button variant="ghostInvert">{format(now, formats[1])}</Button>
+                    <Button variant="ghost">{format(now, formats[1])}</Button>
                 }
             >
                 Open Calendar
             </PopoverTrigger>
             <PopoverContent
-                className="bg-primary text-background w-fit"
                 sideOffset={10}
+                className="w-fit"
             >
-                {/* TODO: add events and notification */}
+                {/* TODO: add events */}
                 <Calendar
-                    variant="invert"
                     mode="single"
                     selected={selectedDate}
                     defaultMonth={selectedDate}

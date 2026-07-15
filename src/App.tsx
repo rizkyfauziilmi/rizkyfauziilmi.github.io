@@ -4,9 +4,12 @@ import Topbar from "./components/topbar";
 
 function App() {
     return (
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
             <TooltipProvider>
-                <Topbar />
+              <div className="flex flex-col min-h-screen">
+                  <Topbar />
+                  <div className="bg-primary flex-1">ok</div>
+              </div>
             </TooltipProvider>
         </ThemeProvider>
     );

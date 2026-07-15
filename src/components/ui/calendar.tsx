@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import {
   DayPicker,
@@ -5,118 +7,35 @@ import {
   type DayButton,
   type Locale,
 } from "react-day-picker"
-import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { CaretLeftIcon, CaretRightIcon, CaretDownIcon } from "@phosphor-icons/react"
-
-const calendarRootVariants = cva(
-  "group/calendar p-3 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(6)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent rtl:**:[.rdp-button\\_next>svg]:rotate-180 rtl:**:[.rdp-button\\_previous>svg]:rotate-180",
-  {
-    variants: {
-      variant: {
-        default: "bg-background",
-        invert: "bg-primary text-background",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-const calendarTodayVariants = cva(
-  "rounded-(--cell-radius) data-[selected=true]:rounded-none",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted text-foreground",
-        invert: "bg-background/10 text-background",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-const calendarDayVariants = cva(
-  "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:rounded-r-(--cell-radius) data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:rounded-l-(--cell-radius) dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
-  {
-    variants: {
-      variant: {
-        default:
-          "hover:bg-muted data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground",
-        invert:
-          "hover:bg-background/10 hover:text-background data-[selected-single=true]:bg-background data-[selected-single=true]:text-foreground data-[range-start=true]:bg-background data-[range-start=true]:text-foreground data-[range-end=true]:bg-background data-[range-end=true]:text-foreground data-[range-middle=true]:bg-background/10 data-[range-middle=true]:text-background",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-const calendarRangeStartVariants = cva(
-  "relative isolate z-0 rounded-l-(--cell-radius) after:absolute after:inset-y-0 after:right-0 after:w-4",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted after:bg-muted",
-        invert: "bg-background/10 after:bg-background/10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-const calendarRangeEndVariants = cva(
-  "relative isolate z-0 rounded-r-(--cell-radius) after:absolute after:inset-y-0 after:left-0 after:w-4",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted after:bg-muted",
-        invert: "bg-background/10 after:bg-background/10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
-  buttonVariant,
-  variant = "default",
+  buttonVariant = "ghost",
   locale,
   formatters,
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
-  variant?: VariantProps<typeof calendarRootVariants>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
-
-  // Map default & invert button variant fallbacks
-  const buttonVariantMap = {
-    default: "ghost",
-    invert: "ghostInvert",
-  } as const
-
-  const resolvedButtonVariant = buttonVariant ?? buttonVariantMap[variant ?? "default"]
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn(calendarRootVariants({ variant }), className)}
+      className={cn(
+        "group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
+        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        className
+      )}
       captionLayout={captionLayout}
       locale={locale}
       formatters={{
@@ -136,12 +55,12 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          buttonVariants({ variant: resolvedButtonVariant }),
+          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ variant: resolvedButtonVariant }),
+          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_next
         ),
@@ -191,16 +110,16 @@ function Calendar({
           defaultClassNames.day
         ),
         range_start: cn(
-          calendarRangeStartVariants({ variant }),
+          "relative isolate z-0 rounded-l-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-muted",
           defaultClassNames.range_start
         ),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn(
-          calendarRangeEndVariants({ variant }),
+          "relative isolate z-0 rounded-r-(--cell-radius) bg-muted after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-muted",
           defaultClassNames.range_end
         ),
         today: cn(
-          calendarTodayVariants({ variant }),
+          "rounded-(--cell-radius) bg-muted text-foreground data-[selected=true]:rounded-none",
           defaultClassNames.today
         ),
         outside: cn(
@@ -228,27 +147,22 @@ function Calendar({
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (
-              <CaretLeftIcon className={cn("size-4", className)} {...props} />
+              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
             )
           }
 
           if (orientation === "right") {
             return (
-              <CaretRightIcon className={cn("size-4", className)} {...props} />
+              <ChevronRightIcon className={cn("size-4", className)} {...props} />
             )
           }
 
           return (
-            <CaretDownIcon className={cn("size-4", className)} {...props} />
+            <ChevronDownIcon className={cn("size-4", className)} {...props} />
           )
         },
         DayButton: ({ ...props }) => (
-          <CalendarDayButton
-            locale={locale}
-            variant={variant}
-            buttonVariant={resolvedButtonVariant}
-            {...props}
-          />
+          <CalendarDayButton locale={locale} {...props} />
         ),
         WeekNumber: ({ children, ...props }) => {
           return (
@@ -271,13 +185,8 @@ function CalendarDayButton({
   day,
   modifiers,
   locale,
-  variant,
-  buttonVariant,
   ...props
-}: React.ComponentProps<typeof DayButton> & {
-  locale?: Partial<Locale>
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
-} & VariantProps<typeof calendarDayVariants>) {
+}: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
   const defaultClassNames = getDefaultClassNames()
 
   const ref = React.useRef<HTMLButtonElement>(null)
@@ -285,16 +194,9 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
-  const buttonVariantMap = {
-    default: "ghost",
-    invert: "ghostInvert",
-  } as const
-
-  const resolvedButtonVariant = buttonVariant ?? buttonVariantMap[variant ?? "default"]
-
   return (
     <Button
-      variant={resolvedButtonVariant}
+      variant="ghost"
       size="icon"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected-single={
@@ -307,7 +209,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        calendarDayVariants({ variant }),
+        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:rounded-r-(--cell-radius) data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:rounded-l-(--cell-radius) data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}
@@ -316,7 +218,4 @@ function CalendarDayButton({
   )
 }
 
-export {
-  Calendar,
-  CalendarDayButton,
-}
+export { Calendar, CalendarDayButton }
