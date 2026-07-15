@@ -4,10 +4,16 @@ import { TopbarQuickSettings } from "./topbar-quick-settings";
 
 export default function Topbar() {
     return (
-        <div className="py-1 px-3 flex items-center justify-between bg-primary text-background">
-            <TopbarAppIndicator />
-            <TopbarClock />
-            <TopbarQuickSettings />
+        <div className="grid grid-cols-3 items-center px-3 py-1 bg-primary text-background">
+            <div className="justify-self-start">
+                <TopbarAppIndicator />
+            </div>
+            <div className="justify-self-center">
+                <TopbarClock />
+            </div>
+            <div className="justify-self-end">
+                <TopbarQuickSettings />
+            </div>
         </div>
     );
 }
