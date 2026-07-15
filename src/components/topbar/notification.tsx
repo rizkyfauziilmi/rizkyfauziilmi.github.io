@@ -11,7 +11,7 @@ export function NotificationButton({ total = 0 }: NotificationButtonProps) {
     }
 
     return (
-        <Button variant="ghostInvert">
+        <Button variant="ghost">
             <BellRingingIcon />
             {total}
         </Button>
