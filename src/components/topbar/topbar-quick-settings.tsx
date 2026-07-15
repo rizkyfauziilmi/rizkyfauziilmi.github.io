@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "../ui/slider";
 import { Toggle } from "../ui/toggle";
+import { useTheme } from "../theme-provider";
 
 export function TopbarQuickSettings() {
     return (
@@ -35,11 +36,13 @@ export function TopbarQuickSettings() {
 }
 
 function QuickSettings() {
+    const { setTheme, theme } = useTheme();
+
     return (
         <Popover>
             <PopoverTrigger
                 render={
-                    <Button variant="ghostInvert">
+                    <Button variant="ghost">
                         <div className="flex items-center gap-3">
                             <WifiHighIcon />
                             <SpeakerHighIcon />
@@ -51,14 +54,10 @@ function QuickSettings() {
             >
                 Open Quick Settings
             </PopoverTrigger>
-            <PopoverContent
-                align="end"
-                className="bg-primary text-background w-fit"
-                sideOffset={10}
-            >
+            <PopoverContent align="end" className="w-fit space-y-2" sideOffset={10}>
                 <PopoverHeader>
                     <div className="flex items-center gap-8">
-                        <div className="flex items-center rounded-b-full rounded-t-full gap-2 bg-background/10 w-fit p-1 pr-4">
+                        <div className="flex items-center rounded-b-full rounded-t-full gap-2 bg-muted border dark:border-0 p-1 pr-4">
                             <Avatar>
                                 <AvatarImage
                                     src="https://github.com/shadcn.png"
@@ -68,14 +67,14 @@ function QuickSettings() {
                             </Avatar>
                             <p className="text-xs">@rizkyfauziilmi</p>
                         </div>
-                        <div>
-                            <Button variant="ghostInvert">
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="icon-lg">
                                 <GearSixIcon />
                             </Button>
-                            <Button variant="ghostInvert">
+                            <Button variant="outline" size="icon-lg">
                                 <LockIcon />
                             </Button>
-                            <Button variant="ghostInvert">
+                            <Button variant="outline" size="icon-lg">
                                 <PowerIcon />
                             </Button>
                         </div>
@@ -85,21 +84,11 @@ function QuickSettings() {
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <SpeakerLowIcon className="size-5" />
-                            <Slider
-                                variant="invert"
-                                defaultValue={[33]}
-                                max={100}
-                                step={1}
-                            />
+                            <Slider defaultValue={[33]} max={100} step={1} />
                         </div>
                         <div className="flex items-center gap-2">
                             <SunIcon className="size-5" />
-                            <Slider
-                                variant="invert"
-                                defaultValue={[33]}
-                                max={100}
-                                step={1}
-                            />
+                            <Slider defaultValue={[33]} max={100} step={1} />
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 w-full">
@@ -107,24 +96,24 @@ function QuickSettings() {
                         <Toggle
                             aria-label="Toggle Wifi"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            disabled
                         >
                             <WifiHighIcon className="size-5" />
                         </Toggle>
                         <Toggle
                             aria-label="Toggle Jangan Ganggu"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            disabled
                         >
                             <BellSlashIcon className="size-5" />
                         </Toggle>
                         <Toggle
                             aria-label="Toggle Mode Pesawat"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            disabled
                         >
                             <AirplaneIcon className="size-5" />
                         </Toggle>
@@ -133,24 +122,27 @@ function QuickSettings() {
                         <Toggle
                             aria-label="Toggle Tema Gelap"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            pressed={theme === "dark"}
+                            onPressedChange={(pressed) =>
+                                setTheme(pressed ? "dark" : "light")
+                            }
                         >
                             <MoonIcon className="size-5" />
                         </Toggle>
                         <Toggle
                             aria-label="Toggle Night Light"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            disabled
                         >
                             <SunDimIcon className="size-5" />
                         </Toggle>
                         <Toggle
                             aria-label="Toggle Lokasi"
                             size="lg"
-                            variant="invert"
                             className="w-full h-12"
+                            disabled
                         >
                             <MapPinIcon className="size-5" />
                         </Toggle>
