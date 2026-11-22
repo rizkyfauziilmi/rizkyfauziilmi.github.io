@@ -1,5 +1,5 @@
+import Terminal from "./components/terminal";
 import { ThemeProvider } from "./components/theme-provider";
-import { Terminal } from "./components/terminal";
 
 function App() {
   return (
