@@ -16,6 +16,7 @@ type CaretPosition = {
 
 export function useBlockCaret(
   textareaRef: RefObject<HTMLTextAreaElement | null>,
+  value: string,
 ) {
   const mirrorRef = useRef<HTMLDivElement>(null);
   const prefixRef = useRef<HTMLSpanElement>(null);
@@ -60,7 +61,7 @@ export function useBlockCaret(
 
   useLayoutEffect(() => {
     measure();
-  }, [measure]);
+  }, [measure, value]);
 
   useEffect(() => {
     const textarea = textareaRef.current;

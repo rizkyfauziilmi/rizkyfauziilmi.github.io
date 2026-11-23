@@ -50,5 +50,11 @@ export function useTerminalFocus() {
     focusInput();
   }, [focusInput]);
 
-  return { inputRef, onPointerDownCapture, onKeyDownCapture, onBlur };
+  return {
+    inputRef,
+    focusInput,
+    onPointerDownCapture,
+    onKeyDownCapture,
+    onBlur,
+  };
 }
