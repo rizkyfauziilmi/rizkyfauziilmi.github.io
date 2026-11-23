@@ -3,8 +3,10 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Make Tailwind's dark: utilities apply when .dark is set on <html>. */
 @custom-variant dark (&:is(.dark *));
 
+/* Bridge the shadcn CSS variables into Tailwind's color/radius tokens. */
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;

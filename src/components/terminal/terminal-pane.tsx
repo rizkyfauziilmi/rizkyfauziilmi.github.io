@@ -50,6 +50,8 @@ export function TerminalPane({
     const container = scrollRef.current;
     if (!container) return;
 
+    // Content height can change after render (wrapped text, avatar image),
+    // so scrolling on entries alone is not enough.
     const observer = new ResizeObserver(scrollToEnd);
     observer.observe(container);
 
@@ -87,6 +89,8 @@ export function TerminalPane({
   };
 
   return (
+    // min-h-0 lets the pane shrink in the flex column; scrolling stays here
+    // so the title bar is never pushed off-screen.
     <div
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"

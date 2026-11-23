@@ -21,6 +21,7 @@ export function useBlockCaret(
   const mirrorRef = useRef<HTMLDivElement>(null);
   const prefixRef = useRef<HTMLSpanElement>(null);
   const markerRef = useRef<HTMLSpanElement>(null);
+  // Skip measurement during IME composition; the composition UI owns the caret until it settles.
   const composingRef = useRef(false);
   const [position, setPosition] = useState<CaretPosition | null>(null);
   const [showCaret, setShowCaret] = useState(false);
@@ -38,6 +39,8 @@ export function useBlockCaret(
       return;
     }
 
+    // Copy text up to the real caret so the marker lands on the exact glyph boundary,
+    // even when the textarea has wrapped into multiple visual lines.
     if (prefixRef.current) {
       prefixRef.current.textContent = textarea.value.slice(
         0,
@@ -51,6 +54,8 @@ export function useBlockCaret(
     const fontSize = parseFloat(styles.fontSize) || 14;
     const lineHeight = parseFloat(styles.lineHeight) || fontSize * 1.25;
 
+    // Marker position relative to the mirror, adjusted for textarea scrolling,
+    // becomes the overlay caret position.
     setPosition({
       left: markerRect.left - mirrorRect.left - textarea.scrollLeft,
       top: markerRect.top - mirrorRect.top - textarea.scrollTop,
@@ -81,6 +86,8 @@ export function useBlockCaret(
       schedule();
     };
 
+    // keydown/keyup and selectionchange are required: held arrow keys do not
+    // reliably fire "select", so the overlay would otherwise lag behind.
     const events = [
       "input",
       "select",
@@ -116,6 +123,7 @@ export function useBlockCaret(
     ? {
         left: position.left,
         top: position.top,
+        // One monospace cell wide, matching the block-caret look.
         width: "1ch",
         height: position.height,
       }

@@ -36,6 +36,7 @@ export function BlockCaretInput({
     useBlockCaret(inputRef, value);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
     if (
       (event.ctrlKey || event.metaKey) &&
       (event.key === "?" || event.key === "/")
@@ -45,6 +46,8 @@ export function BlockCaretInput({
       return;
     }
 
+    // Only swallow the key when history actually handled it; otherwise native
+    // caret navigation stays intact. Modified arrows are left alone too.
     if (
       (event.key === "ArrowUp" || event.key === "ArrowDown") &&
       !event.ctrlKey &&

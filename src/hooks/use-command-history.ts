@@ -8,6 +8,8 @@ import {
 
 export type HistoryDirection = "previous" | "next";
 
+// Always filter by the original draft, not the recalled text, so repeated
+// ArrowUp keeps the same search scope.
 function findCommandIndex(
   commands: string[],
   direction: HistoryDirection,
@@ -35,6 +37,7 @@ export function useCommandHistory(
   inputRef: RefObject<HTMLTextAreaElement | null>,
 ) {
   const [value, setValue] = useState("");
+  // null means "not browsing history"; otherwise it points into commands[].
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const draftRef = useRef("");
   const pendingCaretRef = useRef(false);
@@ -58,6 +61,8 @@ export function useCommandHistory(
       pendingCaretRef.current = true;
       setActiveIndex(nextIndex);
       setValue(nextValue);
+      // rAF covers the case where React bails out because the recalled text
+      // equals the current value, so the layout effect would not run.
       requestAnimationFrame(moveCaretToEnd);
     },
     [moveCaretToEnd],
@@ -78,6 +83,8 @@ export function useCommandHistory(
           selectCommand(prefix, null);
           return true;
         }
+        // Returning false lets the caller skip preventDefault, so the textarea
+        // moves the caret normally when history has nothing to offer.
         return false;
       }
 

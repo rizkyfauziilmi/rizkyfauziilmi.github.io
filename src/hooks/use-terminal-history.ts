@@ -7,11 +7,13 @@ import type { TerminalEntry } from "@/components/terminal/types";
 export function useTerminalHistory() {
   const { setTheme } = useTheme();
   const [entries, setEntries] = useState<TerminalEntry[]>([]);
+  // Kept separately from entries: "clear" wipes the screen but history survives.
   const [commands, setCommands] = useState<string[]>([]);
 
   const submit = (command: string) => {
     const result = runCommand(command);
 
+    // Record every non-blank submission, including errors and "clear", like a real shell.
     if (command.trim()) {
       setCommands((current) => [...current, command]);
     }

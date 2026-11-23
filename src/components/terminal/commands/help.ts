@@ -1,6 +1,7 @@
 import { PORTFOLIO } from "../data/portfolio";
 import type { CommandDefinition } from "./types";
 
+// Aligned without padEnd: emoji glyphs are not one monospace cell wide.
 const HISTORY_TIPS = [
   "💡 ↑ / ↓ browse commands from your history",
   '💡 type a prefix (e.g. th) then ↑ to filter matches',
@@ -13,6 +14,7 @@ export function getCommandLabel(command: CommandDefinition) {
 }
 
 export function buildHelpOutput(commands: CommandDefinition[]) {
+  // Width comes from the registry, so new commands need no manual realignment.
   const width =
     Math.max(...commands.map(({ name, usageArgs }) =>
       `${name}${usageArgs ? ` ${usageArgs}` : ""}`.length,

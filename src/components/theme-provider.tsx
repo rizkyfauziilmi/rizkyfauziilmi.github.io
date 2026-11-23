@@ -35,6 +35,8 @@ export function ThemeProvider({
 
     root.classList.remove("light", "dark");
 
+    // "system" resolves through matchMedia and applies a concrete class;
+    // only explicit choices are stored.
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
@@ -51,6 +53,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
+      // Persist here so a reload keeps the terminal's theme command effective.
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
