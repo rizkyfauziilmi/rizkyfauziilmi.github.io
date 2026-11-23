@@ -7,9 +7,14 @@ import type { TerminalEntry } from "@/components/terminal/types";
 export function useTerminalHistory() {
   const { setTheme } = useTheme();
   const [entries, setEntries] = useState<TerminalEntry[]>([]);
+  const [commands, setCommands] = useState<string[]>([]);
 
   const submit = (command: string) => {
     const result = runCommand(command);
+
+    if (command.trim()) {
+      setCommands((current) => [...current, command]);
+    }
 
     if (result.type === "clear") {
       setEntries([]);
@@ -50,5 +55,5 @@ export function useTerminalHistory() {
     return true;
   };
 
-  return { entries, submit };
+  return { entries, commands, submit };
 }

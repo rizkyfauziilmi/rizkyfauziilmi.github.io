@@ -1,6 +1,11 @@
 import { PORTFOLIO } from "../data/portfolio";
 import type { CommandDefinition } from "./types";
 
+const HISTORY_TIPS = [
+  "💡 ↑ / ↓ browse commands from your history",
+  '💡 type a prefix (e.g. th) then ↑ to filter matches',
+].join("\n");
+
 export function getCommandLabel(command: CommandDefinition) {
   return command.usageArgs
     ? `${command.name} ${command.usageArgs}`
@@ -27,7 +32,10 @@ ${lines.join("\n")}
   ${"<command> -h".padEnd(width)}Print help text for a command
 
 Flags:
-  ${"-h, --help".padEnd(width)}Display this menu and exit`;
+  ${"-h, --help".padEnd(width)}Display this menu and exit
+
+Tips:
+${HISTORY_TIPS}`;
 }
 
 export function buildCommandHelp(command: CommandDefinition) {

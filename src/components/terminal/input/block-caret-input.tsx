@@ -2,7 +2,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
 import { cn } from "cn";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
-import { useBlockCaret } from "@/hooks";
+import { useBlockCaret, type HistoryDirection } from "@/hooks";
 import { INPUT_CLASSNAME } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
@@ -12,6 +12,7 @@ interface BlockCaretInputProps {
   indent: string;
   value: string;
   onChange: (value: string) => void;
+  onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onHelp: () => void;
   placeholder?: string;
@@ -24,6 +25,7 @@ export function BlockCaretInput({
   indent,
   value,
   onChange,
+  onHistoryNavigate,
   onSubmit,
   onHelp,
   placeholder,
@@ -40,6 +42,19 @@ export function BlockCaretInput({
     ) {
       event.preventDefault();
       onHelp();
+      return;
+    }
+
+    if (
+      (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !event.shiftKey
+    ) {
+      const direction: HistoryDirection =
+        event.key === "ArrowUp" ? "previous" : "next";
+      if (onHistoryNavigate(direction)) event.preventDefault();
       return;
     }
 
