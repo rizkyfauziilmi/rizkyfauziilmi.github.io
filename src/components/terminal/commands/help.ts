@@ -1,4 +1,3 @@
-import { PORTFOLIO } from "../data/portfolio";
 import type { CommandDefinition } from "./types";
 
 // Aligned without padEnd: emoji glyphs are not one monospace cell wide.
@@ -24,7 +23,7 @@ export function buildHelpOutput(commands: CommandDefinition[]) {
       `  ${getCommandLabel(command).padEnd(width)}${command.description}`,
   );
 
-  return `Portfolio Terminal (${PORTFOLIO.version}) - interactive command prompt.
+  return `Portfolio Terminal (${__APP_VERSION__}) - interactive command prompt.
 
 Usage: <command> [...flags] [...args]
 
