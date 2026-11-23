@@ -1,5 +1,6 @@
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }
+  | { type: "component"; view: "about" }
   | { type: "clear" }
   | { type: "blank" };
 
@@ -11,6 +12,11 @@ type CommandDefinition = {
 };
 
 const COMMAND_DEFINITIONS: CommandDefinition[] = [
+  {
+    name: "about",
+    description: "Show a short introduction",
+    run: () => ({ type: "component", view: "about" }),
+  },
   {
     name: "clear",
     description: "Clear the terminal screen",

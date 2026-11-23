@@ -2,10 +2,13 @@ import { useState } from "react";
 
 import { runCommand } from "./commands";
 
+export type TerminalView = "about";
+
 export type TerminalEntry = {
   id: number;
   kind: "input" | "output";
   text: string;
+  view?: TerminalView;
   isError?: boolean;
 };
 
@@ -26,16 +29,17 @@ export function useTerminalHistory() {
 
       if (result.type === "blank") return [...current, inputEntry];
 
-      return [
-        ...current,
-        inputEntry,
-        {
-          id: id + 1,
-          kind: "output",
-          text: result.text,
-          isError: result.isError,
-        },
-      ];
+      const outputEntry: TerminalEntry =
+        result.type === "component"
+          ? { id: id + 1, kind: "output", text: "", view: result.view }
+          : {
+              id: id + 1,
+              kind: "output",
+              text: result.text,
+              isError: result.isError,
+            };
+
+      return [...current, inputEntry, outputEntry];
     });
 
     return true;

@@ -4,17 +4,23 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type ComponentType,
   type RefObject,
 } from "react";
 
 import { InputGroup } from "@/components/ui/input-group";
+import { AboutOutput } from "./about-output";
 import { BlockCaretInput } from "./block-caret-input";
 import { getPromptWidth, PROMPT } from "./constants";
 import { TerminalInputLine, TerminalOutputLine } from "./terminal-line";
 import { TerminalPrompt } from "./terminal-prompt";
-import { useTerminalHistory } from "./use-terminal-history";
+import { useTerminalHistory, type TerminalView } from "./use-terminal-history";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
+
+const TERMINAL_VIEWS: Record<TerminalView, ComponentType> = {
+  about: AboutOutput,
+};
 
 interface TerminalPaneProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
@@ -66,22 +72,29 @@ export function TerminalPane({
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
     >
       <div className="flex flex-col gap-1">
-        {entries.map((entry) =>
-          entry.kind === "input" ? (
-            <TerminalInputLine
-              key={entry.id}
-              prompt={prompt}
-              text={entry.text}
-              indent={indent}
-            />
-          ) : (
+        {entries.map((entry) => {
+          if (entry.kind === "input") {
+            return (
+              <TerminalInputLine
+                key={entry.id}
+                prompt={prompt}
+                text={entry.text}
+                indent={indent}
+              />
+            );
+          }
+
+          const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
+          if (View) return <View key={entry.id} />;
+
+          return (
             <TerminalOutputLine
               key={entry.id}
               text={entry.text}
               isError={entry.isError}
             />
-          ),
-        )}
+          );
+        })}
         <InputGroup variant="none-style">
           <TerminalPrompt prompt={prompt} />
           <BlockCaretInput
