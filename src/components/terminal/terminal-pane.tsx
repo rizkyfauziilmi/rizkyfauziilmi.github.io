@@ -3,12 +3,11 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
-  useState,
   type RefObject,
 } from "react";
 
 import { InputGroup } from "@/components/ui/input-group";
-import { useTerminalHistory } from "@/hooks";
+import { useCommandHistory, useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
 import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
 import { TerminalOutputLine, TERMINAL_VIEWS } from "./output";
@@ -29,9 +28,12 @@ export function TerminalPane({
   prompt = PROMPT,
   placeholder = DEFAULT_PLACEHOLDER,
 }: TerminalPaneProps) {
-  const [value, setValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { entries, submit } = useTerminalHistory();
+  const { entries, commands, submit } = useTerminalHistory();
+  const { value, changeValue, navigate, reset } = useCommandHistory(
+    commands,
+    inputRef,
+  );
   const indent = getPromptWidth(prompt);
 
   const scrollToEnd = useCallback(() => {
@@ -48,6 +50,8 @@ export function TerminalPane({
     const container = scrollRef.current;
     if (!container) return;
 
+    // Content height can change after render (wrapped text, avatar image),
+    // so scrolling on entries alone is not enough.
     const observer = new ResizeObserver(scrollToEnd);
     observer.observe(container);
 
@@ -56,7 +60,7 @@ export function TerminalPane({
 
   const execute = (command: string) => {
     if (!submit(command)) return;
-    setValue("");
+    reset();
     focusInput();
   };
 
@@ -85,6 +89,8 @@ export function TerminalPane({
   };
 
   return (
+    // min-h-0 lets the pane shrink in the flex column; scrolling stays here
+    // so the title bar is never pushed off-screen.
     <div
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
@@ -97,7 +103,8 @@ export function TerminalPane({
             inputRef={inputRef}
             indent={indent}
             value={value}
-            onChange={setValue}
+            onChange={changeValue}
+            onHistoryNavigate={navigate}
             onSubmit={() => execute(value)}
             onHelp={() => execute("help")}
             placeholder={placeholder}

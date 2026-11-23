@@ -1,8 +1,8 @@
 import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
-import { useBlockCaret } from "@/hooks";
+import { useBlockCaret, type HistoryDirection } from "@/hooks";
 import { INPUT_CLASSNAME } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
@@ -12,6 +12,7 @@ interface BlockCaretInputProps {
   indent: string;
   value: string;
   onChange: (value: string) => void;
+  onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onHelp: () => void;
   placeholder?: string;
@@ -24,6 +25,7 @@ export function BlockCaretInput({
   indent,
   value,
   onChange,
+  onHistoryNavigate,
   onSubmit,
   onHelp,
   placeholder,
@@ -34,12 +36,28 @@ export function BlockCaretInput({
     useBlockCaret(inputRef, value);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
     if (
       (event.ctrlKey || event.metaKey) &&
       (event.key === "?" || event.key === "/")
     ) {
       event.preventDefault();
       onHelp();
+      return;
+    }
+
+    // Only swallow the key when history actually handled it; otherwise native
+    // caret navigation stays intact. Modified arrows are left alone too.
+    if (
+      (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !event.shiftKey
+    ) {
+      const direction: HistoryDirection =
+        event.key === "ArrowUp" ? "previous" : "next";
+      if (onHistoryNavigate(direction)) event.preventDefault();
       return;
     }
 

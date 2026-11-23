@@ -20,6 +20,7 @@ function isHelpRequest(args: string[]) {
 
 export function runCommand(raw: string): CommandResult {
   const trimmed = raw.trim();
+  // Blank Enter still produces a result (an empty input line), never null.
   if (!trimmed) return { type: "blank" };
 
   const [name, ...args] = trimmed.split(/\s+/);
@@ -33,6 +34,8 @@ export function runCommand(raw: string): CommandResult {
     };
   }
 
+  // Help flags are checked before argument validation so "theme -h" is not
+  // rejected as a bad argument.
   if (isHelpRequest(args)) {
     return { type: "output", text: buildCommandHelp(command), isError: false };
   }

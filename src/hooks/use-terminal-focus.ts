@@ -9,6 +9,8 @@ import {
 export function useTerminalFocus() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Defer to the next frame and ignore unfocused tabs so focus restoration
+  // never pulls attention away from another window.
   const focusInput = useCallback(() => {
     requestAnimationFrame(() => {
       if (!document.hasFocus()) return;
@@ -21,6 +23,8 @@ export function useTerminalFocus() {
     inputRef.current?.focus({ preventScroll: true });
   }, []);
 
+  // Capture phase keeps clicks outside the control (including the title bar)
+  // from stealing the terminal's exclusive focus.
   const onPointerDownCapture = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
       if (window.getSelection()?.toString()) return;
@@ -37,6 +41,7 @@ export function useTerminalFocus() {
     [focusInput],
   );
 
+  // Tab is blocked at the root so focus can never escape the terminal input.
   const onKeyDownCapture = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
       if (event.key !== "Tab") return;

@@ -5,6 +5,7 @@ import {
   type CommandResult,
 } from "./types";
 
+// Commands reject extra arguments unless they explicitly opt in with acceptsArgs.
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "about",
@@ -19,6 +20,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "help",
     description: "Display this help message",
+    // Pass the registry explicitly: help.ts must not import registry.ts or the
+    // two modules would form a cycle.
     run: () => ({
       type: "output",
       text: buildHelpOutput(COMMAND_DEFINITIONS),
