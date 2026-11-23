@@ -1,5 +1,4 @@
 export const PORTFOLIO = {
-  version: "1.1.0",
   avatarUrl: "/profile.png",
   name: "Rizky Fauzi Ilmi",
   role: "Web Developer",
