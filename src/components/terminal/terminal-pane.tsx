@@ -8,11 +8,11 @@ import {
 } from "react";
 
 import { InputGroup } from "@/components/ui/input-group";
-import { BlockCaretInput } from "./block-caret-input";
+import { useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
-import { TerminalInputLine, TerminalOutputLine } from "./terminal-line";
-import { TerminalPrompt } from "./terminal-prompt";
-import { useTerminalHistory } from "./use-terminal-history";
+import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
+import { TerminalOutputLine, TERMINAL_VIEWS } from "./output";
+import type { TerminalEntry } from "./types";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
@@ -60,28 +60,37 @@ export function TerminalPane({
     focusInput();
   };
 
+  const renderEntry = (entry: TerminalEntry) => {
+    if (entry.kind === "input") {
+      return (
+        <TerminalInputLine
+          key={entry.id}
+          prompt={prompt}
+          text={entry.text}
+          indent={indent}
+        />
+      );
+    }
+
+    const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
+    if (View) return <View key={entry.id} entry={entry} />;
+
+    return (
+      <TerminalOutputLine
+        key={entry.id}
+        text={entry.text}
+        isError={entry.isError}
+      />
+    );
+  };
+
   return (
     <div
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
     >
       <div className="flex flex-col gap-1">
-        {entries.map((entry) =>
-          entry.kind === "input" ? (
-            <TerminalInputLine
-              key={entry.id}
-              prompt={prompt}
-              text={entry.text}
-              indent={indent}
-            />
-          ) : (
-            <TerminalOutputLine
-              key={entry.id}
-              text={entry.text}
-              isError={entry.isError}
-            />
-          ),
-        )}
+        {entries.map(renderEntry)}
         <InputGroup variant="none-style">
           <TerminalPrompt prompt={prompt} />
           <BlockCaretInput

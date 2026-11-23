@@ -1,0 +1,24 @@
+import { cn } from "cn";
+
+import { LINE_CLASSNAME } from "../constants";
+
+interface TerminalOutputLineProps {
+  text: string;
+  isError?: boolean;
+}
+
+export function TerminalOutputLine({
+  text,
+  isError,
+}: TerminalOutputLineProps) {
+  return (
+    <div
+      className={cn(
+        LINE_CLASSNAME,
+        isError ? "text-destructive" : "text-foreground",
+      )}
+    >
+      {text}
+    </div>
+  );
+}

@@ -1,0 +1,45 @@
+import { buildCommandHelp } from "./help";
+import { COMMAND_DEFINITIONS } from "./registry";
+import type { CommandDefinition, CommandResult } from "./types";
+
+export { THEME_MODES } from "./types";
+export type { CommandResult, ThemeMode } from "./types";
+
+function rejectArguments(command: CommandDefinition): CommandResult {
+  return {
+    type: "output",
+    text: `(error) ${command.name}: command does not accept arguments...`,
+    isError: true,
+  };
+}
+
+function isHelpRequest(args: string[]) {
+  const [first] = args;
+  return first === "-h" || first === "--help" || first === "help";
+}
+
+export function runCommand(raw: string): CommandResult {
+  const trimmed = raw.trim();
+  if (!trimmed) return { type: "blank" };
+
+  const [name, ...args] = trimmed.split(/\s+/);
+  const command = COMMAND_DEFINITIONS.find((item) => item.name === name);
+
+  if (!command) {
+    return {
+      type: "output",
+      text: `(error) ${name}: command not found...`,
+      isError: true,
+    };
+  }
+
+  if (isHelpRequest(args)) {
+    return { type: "output", text: buildCommandHelp(command), isError: false };
+  }
+
+  if (args.length > 0 && !command.acceptsArgs) {
+    return rejectArguments(command);
+  }
+
+  return command.run(args);
+}

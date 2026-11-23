@@ -3,10 +3,9 @@ import { cn } from "cn";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
 import { useBlockCaret } from "@/hooks";
+import { INPUT_CLASSNAME } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
-
-const INPUT_CLASSNAME = "break-words text-sm leading-5 caret-transparent";
 
 interface BlockCaretInputProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;

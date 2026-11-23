@@ -1,9 +1,7 @@
 import { cn } from "cn";
 
+import { LINE_CLASSNAME } from "../constants";
 import { TerminalPrompt } from "./terminal-prompt";
-
-const LINE_CLASSNAME =
-  "min-h-[1lh] break-words whitespace-pre-wrap text-sm leading-5";
 
 interface TerminalInputLineProps {
   prompt: string;
@@ -25,27 +23,6 @@ export function TerminalInputLine({
       >
         {text}
       </div>
-    </div>
-  );
-}
-
-interface TerminalOutputLineProps {
-  text: string;
-  isError?: boolean;
-}
-
-export function TerminalOutputLine({
-  text,
-  isError,
-}: TerminalOutputLineProps) {
-  return (
-    <div
-      className={cn(
-        LINE_CLASSNAME,
-        isError ? "text-destructive" : "text-foreground",
-      )}
-    >
-      {text}
     </div>
   );
 }
