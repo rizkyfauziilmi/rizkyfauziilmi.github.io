@@ -14,12 +14,21 @@ import { BlockCaretInput } from "./block-caret-input";
 import { getPromptWidth, PROMPT } from "./constants";
 import { TerminalInputLine, TerminalOutputLine } from "./terminal-line";
 import { TerminalPrompt } from "./terminal-prompt";
-import { useTerminalHistory, type TerminalView } from "./use-terminal-history";
+import { ThemeOutput } from "./theme-output";
+import {
+  useTerminalHistory,
+  type TerminalEntry,
+  type TerminalView,
+} from "./use-terminal-history";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
-const TERMINAL_VIEWS: Record<TerminalView, ComponentType> = {
+const TERMINAL_VIEWS: Record<
+  TerminalView,
+  ComponentType<{ entry: TerminalEntry }>
+> = {
   about: AboutOutput,
+  theme: ThemeOutput,
 };
 
 interface TerminalPaneProps {
@@ -85,7 +94,7 @@ export function TerminalPane({
           }
 
           const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
-          if (View) return <View key={entry.id} />;
+          if (View) return <View key={entry.id} entry={entry} />;
 
           return (
             <TerminalOutputLine

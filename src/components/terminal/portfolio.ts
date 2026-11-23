@@ -1,4 +1,5 @@
 export const PORTFOLIO = {
+  version: "1.1.0",
   avatarUrl: "/profile.png",
   name: "Rizky Fauzi Ilmi",
   role: "Web Developer",
@@ -16,6 +17,6 @@ export function buildAboutOutput() {
   return [
     ...PORTFOLIO.bio,
     "",
-    `Available commands: ${PORTFOLIO.availableCommands.join(", ")}`,
+    `Get to know me better with this available commands: [${PORTFOLIO.availableCommands.join(", ")}]`,
   ].join("\n");
 }

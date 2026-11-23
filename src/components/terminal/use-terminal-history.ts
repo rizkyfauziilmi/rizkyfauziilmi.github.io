@@ -1,18 +1,21 @@
 import { useState } from "react";
 
-import { runCommand } from "./commands";
+import { useTheme } from "@/components/theme-provider";
+import { runCommand, type ThemeMode } from "./commands";
 
-export type TerminalView = "about";
+export type TerminalView = "about" | "theme";
 
 export type TerminalEntry = {
   id: number;
   kind: "input" | "output";
   text: string;
   view?: TerminalView;
+  themeMode?: ThemeMode;
   isError?: boolean;
 };
 
 export function useTerminalHistory() {
+  const { setTheme } = useTheme();
   const [entries, setEntries] = useState<TerminalEntry[]>([]);
 
   const submit = (command: string) => {
@@ -21,6 +24,10 @@ export function useTerminalHistory() {
     if (result.type === "clear") {
       setEntries([]);
       return true;
+    }
+
+    if (result.type === "theme") {
+      setTheme(result.mode);
     }
 
     setEntries((current) => {
@@ -32,12 +39,20 @@ export function useTerminalHistory() {
       const outputEntry: TerminalEntry =
         result.type === "component"
           ? { id: id + 1, kind: "output", text: "", view: result.view }
-          : {
-              id: id + 1,
-              kind: "output",
-              text: result.text,
-              isError: result.isError,
-            };
+          : result.type === "theme"
+            ? {
+                id: id + 1,
+                kind: "output",
+                text: result.text,
+                view: "theme",
+                themeMode: result.mode,
+              }
+            : {
+                id: id + 1,
+                kind: "output",
+                text: result.text,
+                isError: result.isError,
+              };
 
       return [...current, inputEntry, outputEntry];
     });

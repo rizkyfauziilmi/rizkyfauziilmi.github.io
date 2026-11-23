@@ -5,7 +5,7 @@ import { buildAboutOutput, PORTFOLIO } from "./portfolio";
 export function AboutOutput() {
   return (
     <div>
-      <div className="flex gap-2 pb-4 py-2">
+      <div className="flex gap-2 pb-4 pt-2">
         <Avatar size="lg" className="shrink-0">
           <AvatarImage src={PORTFOLIO.avatarUrl} alt={PORTFOLIO.name} />
           <AvatarFallback>RFI</AvatarFallback>
