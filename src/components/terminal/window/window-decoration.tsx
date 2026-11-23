@@ -1,4 +1,4 @@
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { XIcon, SquareIcon, MinusIcon } from "lucide-react";
 
 export function WindowDecoration() {

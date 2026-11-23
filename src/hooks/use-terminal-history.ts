@@ -1,18 +1,8 @@
 import { useState } from "react";
 
 import { useTheme } from "@/components/theme-provider";
-import { runCommand, type ThemeMode } from "./commands";
-
-export type TerminalView = "about" | "theme";
-
-export type TerminalEntry = {
-  id: number;
-  kind: "input" | "output";
-  text: string;
-  view?: TerminalView;
-  themeMode?: ThemeMode;
-  isError?: boolean;
-};
+import { runCommand } from "@/components/terminal/commands";
+import type { TerminalEntry } from "@/components/terminal/types";
 
 export function useTerminalHistory() {
   const { setTheme } = useTheme();

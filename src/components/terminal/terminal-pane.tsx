@@ -4,32 +4,17 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type ComponentType,
   type RefObject,
 } from "react";
 
 import { InputGroup } from "@/components/ui/input-group";
-import { AboutOutput } from "./about-output";
-import { BlockCaretInput } from "./block-caret-input";
+import { useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
-import { TerminalInputLine, TerminalOutputLine } from "./terminal-line";
-import { TerminalPrompt } from "./terminal-prompt";
-import { ThemeOutput } from "./theme-output";
-import {
-  useTerminalHistory,
-  type TerminalEntry,
-  type TerminalView,
-} from "./use-terminal-history";
+import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
+import { TerminalOutputLine, TERMINAL_VIEWS } from "./output";
+import type { TerminalEntry } from "./types";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
-
-const TERMINAL_VIEWS: Record<
-  TerminalView,
-  ComponentType<{ entry: TerminalEntry }>
-> = {
-  about: AboutOutput,
-  theme: ThemeOutput,
-};
 
 interface TerminalPaneProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
@@ -75,35 +60,37 @@ export function TerminalPane({
     focusInput();
   };
 
+  const renderEntry = (entry: TerminalEntry) => {
+    if (entry.kind === "input") {
+      return (
+        <TerminalInputLine
+          key={entry.id}
+          prompt={prompt}
+          text={entry.text}
+          indent={indent}
+        />
+      );
+    }
+
+    const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
+    if (View) return <View key={entry.id} entry={entry} />;
+
+    return (
+      <TerminalOutputLine
+        key={entry.id}
+        text={entry.text}
+        isError={entry.isError}
+      />
+    );
+  };
+
   return (
     <div
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
     >
       <div className="flex flex-col gap-1">
-        {entries.map((entry) => {
-          if (entry.kind === "input") {
-            return (
-              <TerminalInputLine
-                key={entry.id}
-                prompt={prompt}
-                text={entry.text}
-                indent={indent}
-              />
-            );
-          }
-
-          const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
-          if (View) return <View key={entry.id} entry={entry} />;
-
-          return (
-            <TerminalOutputLine
-              key={entry.id}
-              text={entry.text}
-              isError={entry.isError}
-            />
-          );
-        })}
+        {entries.map(renderEntry)}
         <InputGroup variant="none-style">
           <TerminalPrompt prompt={prompt} />
           <BlockCaretInput

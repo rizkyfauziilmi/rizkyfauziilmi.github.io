@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { buildAboutOutput, PORTFOLIO } from "./portfolio";
+import { buildAboutOutput, PORTFOLIO } from "../data";
 
 export function AboutOutput() {
   return (
