@@ -1,4 +1,5 @@
 import { buildCommandHelp } from "./help";
+import { tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandDefinition, CommandResult } from "./types";
 
@@ -19,13 +20,11 @@ function isHelpRequest(args: string[]) {
 }
 
 export function runCommand(raw: string): CommandResult {
-  const trimmed = raw.trim();
+  const [name, ...args] = tokenize(raw);
   // Blank Enter still produces a result (an empty input line), never null.
-  if (!trimmed) return { type: "blank" };
+  if (!name) return { type: "blank" };
 
-  const [name, ...args] = trimmed.split(/\s+/);
   const command = COMMAND_DEFINITIONS.find((item) => item.name === name);
-
   if (!command) {
     return {
       type: "output",
@@ -35,12 +34,13 @@ export function runCommand(raw: string): CommandResult {
   }
 
   // Help flags are checked before argument validation so "theme -h" is not
-  // rejected as a bad argument.
-  if (isHelpRequest(args)) {
+  // rejected as a bad argument. Hidden eggs and echo never show help.
+  if (!command.hidden && command.name !== "echo" && isHelpRequest(args)) {
     return { type: "output", text: buildCommandHelp(command), isError: false };
   }
 
-  if (args.length > 0 && !command.acceptsArgs) {
+  // Eggs ignore stray arguments so "whoami -h" still runs the egg.
+  if (!command.hidden && args.length > 0 && !command.acceptsArgs) {
     return rejectArguments(command);
   }
 

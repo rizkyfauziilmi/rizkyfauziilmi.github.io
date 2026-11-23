@@ -10,7 +10,7 @@ import { InputGroup } from "@/components/ui/input-group";
 import { useCommandHistory, useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
 import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
-import { TerminalOutputLine, TERMINAL_VIEWS } from "./output";
+import { HaltedScreen, TerminalOutputLine, TERMINAL_VIEWS } from "./output";
 import type { TerminalEntry } from "./types";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
@@ -29,7 +29,7 @@ export function TerminalPane({
   placeholder = DEFAULT_PLACEHOLDER,
 }: TerminalPaneProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { entries, commands, submit } = useTerminalHistory();
+  const { entries, commands, submit, isHalted, powerOn } = useTerminalHistory();
   const { value, changeValue, navigate, reset } = useCommandHistory(
     commands,
     inputRef,
@@ -95,22 +95,26 @@ export function TerminalPane({
       ref={scrollRef}
       className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
     >
-      <div className="flex flex-col gap-1">
-        {entries.map(renderEntry)}
-        <InputGroup variant="none-style">
-          <TerminalPrompt prompt={prompt} />
-          <BlockCaretInput
-            inputRef={inputRef}
-            indent={indent}
-            value={value}
-            onChange={changeValue}
-            onHistoryNavigate={navigate}
-            onSubmit={() => execute(value)}
-            onHelp={() => execute("help")}
-            placeholder={placeholder}
-          />
-        </InputGroup>
-      </div>
+      {isHalted ? (
+        <HaltedScreen onPowerOn={powerOn} />
+      ) : (
+        <div className="flex flex-col gap-1">
+          {entries.map(renderEntry)}
+          <InputGroup variant="none-style">
+            <TerminalPrompt prompt={prompt} />
+            <BlockCaretInput
+              inputRef={inputRef}
+              indent={indent}
+              value={value}
+              onChange={changeValue}
+              onHistoryNavigate={navigate}
+              onSubmit={() => execute(value)}
+              onHelp={() => execute("help")}
+              placeholder={placeholder}
+            />
+          </InputGroup>
+        </div>
+      )}
     </div>
   );
 }

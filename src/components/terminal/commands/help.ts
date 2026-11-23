@@ -4,6 +4,7 @@ import type { CommandDefinition } from "./types";
 const HISTORY_TIPS = [
   "💡 ↑ / ↓ browse commands from your history",
   '💡 type a prefix (e.g. th) then ↑ to filter matches',
+  "💡 classic Unix troublemakers still hang around here",
 ].join("\n");
 
 export function getCommandLabel(command: CommandDefinition) {
@@ -13,12 +14,14 @@ export function getCommandLabel(command: CommandDefinition) {
 }
 
 export function buildHelpOutput(commands: CommandDefinition[]) {
+  // Hidden commands are still runnable, but never advertised in help.
+  const visible = commands.filter((command) => !command.hidden);
   // Width comes from the registry, so new commands need no manual realignment.
   const width =
-    Math.max(...commands.map(({ name, usageArgs }) =>
+    Math.max(...visible.map(({ name, usageArgs }) =>
       `${name}${usageArgs ? ` ${usageArgs}` : ""}`.length,
     )) + 5;
-  const lines = commands.map(
+  const lines = visible.map(
     (command) =>
       `  ${getCommandLabel(command).padEnd(width)}${command.description}`,
   );
@@ -49,10 +52,17 @@ ${command.arguments
 `
     : "";
 
+  const examplesBlock = command.examples?.length
+    ? `
+Examples:
+${command.examples.map((example) => `  ${example}`).join("\n")}
+`
+    : "";
+
   return `${command.description}
 
 Usage: ${getCommandLabel(command)}
-${argumentsBlock}
+${argumentsBlock}${examplesBlock}
 Flags:
   -h, --help   Display this help text`;
 }
