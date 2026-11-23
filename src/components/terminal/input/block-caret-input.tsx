@@ -1,5 +1,5 @@
 import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
 import { useBlockCaret, type HistoryDirection } from "@/hooks";

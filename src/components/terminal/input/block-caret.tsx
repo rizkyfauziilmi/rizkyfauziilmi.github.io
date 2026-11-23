@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 interface BlockCaretProps {
   style: CSSProperties;

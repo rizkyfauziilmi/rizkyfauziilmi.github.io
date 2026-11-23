@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 interface CaretMirrorProps {
   mirrorRef: RefObject<HTMLDivElement | null>;

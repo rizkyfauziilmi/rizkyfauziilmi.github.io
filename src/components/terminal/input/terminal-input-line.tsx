@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 import { LINE_CLASSNAME } from "../constants";
 import { TerminalPrompt } from "./terminal-prompt";
