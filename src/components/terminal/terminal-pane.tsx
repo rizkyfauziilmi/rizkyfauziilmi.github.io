@@ -9,9 +9,8 @@ import {
 import { InputGroup } from "@/components/ui/input-group";
 import { useCommandHistory, useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
-import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
-import { HaltedScreen, TerminalOutputLine, TERMINAL_VIEWS } from "./output";
-import type { TerminalEntry } from "./types";
+import { BlockCaretInput, TerminalPrompt } from "./input";
+import { HaltedScreen, TerminalEntryView } from "./output";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
@@ -58,35 +57,17 @@ export function TerminalPane({
     return () => observer.disconnect();
   }, [scrollToEnd]);
 
-  const execute = (command: string) => {
-    if (!submit(command)) return;
-    reset();
-    focusInput();
-  };
+  const execute = useCallback(
+    (command: string) => {
+      if (!submit(command)) return;
+      reset();
+      focusInput();
+    },
+    [submit, reset, focusInput],
+  );
 
-  const renderEntry = (entry: TerminalEntry) => {
-    if (entry.kind === "input") {
-      return (
-        <TerminalInputLine
-          key={entry.id}
-          prompt={prompt}
-          text={entry.text}
-          indent={indent}
-        />
-      );
-    }
-
-    const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
-    if (View) return <View key={entry.id} entry={entry} />;
-
-    return (
-      <TerminalOutputLine
-        key={entry.id}
-        text={entry.text}
-        isError={entry.isError}
-      />
-    );
-  };
+  const runValue = useCallback(() => execute(value), [execute, value]);
+  const runHelp = useCallback(() => execute("help"), [execute]);
 
   return (
     // min-h-0 lets the pane shrink in the flex column; scrolling stays here
@@ -99,7 +80,14 @@ export function TerminalPane({
         <HaltedScreen onPowerOn={powerOn} />
       ) : (
         <div className="flex flex-col gap-1">
-          {entries.map(renderEntry)}
+          {entries.map((entry) => (
+            <TerminalEntryView
+              key={entry.id}
+              entry={entry}
+              prompt={prompt}
+              indent={indent}
+            />
+          ))}
           <InputGroup variant="none-style">
             <TerminalPrompt prompt={prompt} />
             <BlockCaretInput
@@ -108,8 +96,8 @@ export function TerminalPane({
               value={value}
               onChange={changeValue}
               onHistoryNavigate={navigate}
-              onSubmit={() => execute(value)}
-              onHelp={() => execute("help")}
+              onSubmit={runValue}
+              onHelp={runHelp}
               placeholder={placeholder}
             />
           </InputGroup>

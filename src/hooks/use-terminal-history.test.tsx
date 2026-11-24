@@ -98,4 +98,25 @@ describe("useTerminalHistory", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(localStorage.getItem("vite-ui-theme")).toBe("dark");
   });
+
+  it("keeps entry ids unique after the screen is cleared", () => {
+    const { result } = renderHook(() => useTerminalHistory(), { wrapper });
+
+    act(() => result.current.submit("help"));
+    act(() => result.current.submit("clear"));
+    act(() => result.current.submit("echo hi"));
+
+    expect(result.current.entries.map((entry) => entry.id)).toEqual([2, 3]);
+  });
+
+  it("cancels a shutdown now before its halted fallback", () => {
+    const { result } = renderHook(() => useTerminalHistory(), { wrapper });
+
+    act(() => result.current.submit("shutdown now"));
+    act(() => result.current.submit("shutdown -c"));
+    act(() => vi.advanceTimersByTime(250));
+
+    expect(result.current.isHalted).toBe(false);
+    expect(close).toHaveBeenCalledOnce();
+  });
 });

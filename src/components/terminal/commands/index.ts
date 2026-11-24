@@ -19,6 +19,15 @@ function isHelpRequest(args: string[]) {
   return first === "-h" || first === "--help" || first === "help";
 }
 
+function isVisibleCommand(command: CommandDefinition) {
+  return !command.hidden;
+}
+
+// Eggs stay secret; echo treats help flags as ordinary text to print.
+function showsCommandHelp(command: CommandDefinition) {
+  return isVisibleCommand(command) && command.name !== "echo";
+}
+
 export function runCommand(raw: string): CommandResult {
   const [name, ...args] = tokenize(raw);
   // Blank Enter still produces a result (an empty input line), never null.
@@ -34,13 +43,13 @@ export function runCommand(raw: string): CommandResult {
   }
 
   // Help flags are checked before argument validation so "theme -h" is not
-  // rejected as a bad argument. Hidden eggs and echo never show help.
-  if (!command.hidden && command.name !== "echo" && isHelpRequest(args)) {
+  // rejected as a bad argument.
+  if (showsCommandHelp(command) && isHelpRequest(args)) {
     return { type: "output", text: buildCommandHelp(command), isError: false };
   }
 
   // Eggs ignore stray arguments so "whoami -h" still runs the egg.
-  if (!command.hidden && args.length > 0 && !command.acceptsArgs) {
+  if (isVisibleCommand(command) && args.length > 0 && !command.acceptsArgs) {
     return rejectArguments(command);
   }
 

@@ -1,19 +1,22 @@
-import { Button } from "../../ui/button";
-import { XIcon, SquareIcon, MinusIcon } from "lucide-react";
+import { MinusIcon, SquareIcon, XIcon } from "lucide-react";
+
+// Decorative only: real buttons would be focusable and announced by screen
+// readers even though they have no action, while Tab is reserved for the input.
+const DECORATION_CLASSNAME =
+  "inline-flex size-6 items-center justify-center rounded-full [&>svg]:size-3";
 
 export function WindowDecoration() {
-  // Decorative only: these buttons intentionally have no handlers.
   return (
-    <div className="space-x-2">
-      <Button size="icon-xs" className="rounded-full" variant="ghost">
+    <div aria-hidden className="space-x-2">
+      <span className={DECORATION_CLASSNAME}>
         <MinusIcon />
-      </Button>
-      <Button size="icon-xs" className="rounded-full" variant="ghost">
+      </span>
+      <span className={DECORATION_CLASSNAME}>
         <SquareIcon />
-      </Button>
-      <Button size="icon-xs" className="rounded-full" variant="ghost">
+      </span>
+      <span className={DECORATION_CLASSNAME}>
         <XIcon />
-      </Button>
+      </span>
     </div>
   );
 }

@@ -1,9 +1,7 @@
-export const THEME_MODES = ["dark", "light", "system"] as const;
-export type ThemeMode = (typeof THEME_MODES)[number];
+import type { ThemeMode } from "@/lib/theme";
 
-export function isThemeMode(value: string | undefined): value is ThemeMode {
-  return THEME_MODES.includes(value as ThemeMode);
-}
+export { isThemeMode, THEME_MODES } from "@/lib/theme";
+export type { ThemeMode } from "@/lib/theme";
 
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }

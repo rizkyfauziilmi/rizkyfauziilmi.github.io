@@ -18,9 +18,7 @@ export function buildHelpOutput(commands: CommandDefinition[]) {
   const visible = commands.filter((command) => !command.hidden);
   // Width comes from the registry, so new commands need no manual realignment.
   const width =
-    Math.max(...visible.map(({ name, usageArgs }) =>
-      `${name}${usageArgs ? ` ${usageArgs}` : ""}`.length,
-    )) + 5;
+    Math.max(...visible.map((command) => getCommandLabel(command).length)) + 5;
   const lines = visible.map(
     (command) =>
       `  ${getCommandLabel(command).padEnd(width)}${command.description}`,
