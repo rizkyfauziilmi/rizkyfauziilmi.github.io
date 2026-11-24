@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { createDefaultCommandContext } from "./fetch";
 import { runCommand } from "./index";
 import { SHUTDOWN_ERROR } from "./shutdown";
 
@@ -139,5 +140,52 @@ describe("runCommand", () => {
 
   it("keeps clear as a screen-only result", () => {
     expect(runCommand("clear")).toEqual({ type: "clear" });
+  });
+
+  it("opens the projects tui and describes it in help", () => {
+    expect(runCommand("projects")).toEqual({ type: "tui", view: "projects" });
+
+    const help = runCommand("help");
+    expect(help.type).toBe("output");
+    if (help.type === "output") {
+      expect(help.text).toContain("projects");
+      expect(help.text).toContain("Browse projects in an interactive TUI");
+    }
+
+    const detail = runCommand("projects -h");
+    expect(detail.type).toBe("output");
+    if (detail.type === "output") {
+      expect(detail.text).toContain("Usage: projects");
+    }
+  });
+
+  it("runs neofetch and its fastfetch alias with the supplied context", () => {
+    const context = { ...createDefaultCommandContext(), theme: "light" as const };
+    const neofetch = runCommand("neofetch", context);
+    const fastfetch = runCommand("fastfetch", context);
+
+    expect(neofetch).toEqual({
+      type: "output",
+      text: expect.any(String),
+      isError: false,
+    });
+    expect(fastfetch).toEqual(neofetch);
+
+    if (neofetch.type === "output") {
+      expect(neofetch.text).toContain("Theme:      light");
+    }
+  });
+
+  it("advertises neofetch but keeps the fastfetch alias hidden", () => {
+    const help = runCommand("help");
+    expect(help.type).toBe("output");
+    if (help.type === "output") {
+      expect(help.text).toContain("neofetch");
+      expect(help.text).toContain("Show system and portfolio info");
+      expect(help.text).not.toContain("fastfetch");
+    }
+
+    const aliasHelp = runCommand("fastfetch -h");
+    expect(aliasHelp).toEqual(runCommand("fastfetch"));
   });
 });

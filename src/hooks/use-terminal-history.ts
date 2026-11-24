@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useReducer } from "react";
 
 import { useTheme } from "@/components/theme-context";
-import { runCommand } from "@/components/terminal/commands";
+import {
+  runCommand,
+  type CommandContext,
+} from "@/components/terminal/commands";
 import { createInitialSession, sessionReducer } from "@/components/terminal/session";
 
 const REBOOT_DELAY_MS = 1_000;
 const CLOSE_FALLBACK_MS = 250;
 
+function getPlatform() {
+  const nav = navigator as Navigator & { userAgentData?: { platform?: string } };
+  return nav.userAgentData?.platform || navigator.platform || "Unknown";
+}
+
 export function useTerminalHistory() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [session, dispatch] = useReducer(
     sessionReducer,
     undefined,
@@ -45,23 +53,37 @@ export function useTerminalHistory() {
 
   const submit = useCallback(
     (command: string): boolean => {
-      if (session.phase === "halted") return false;
+      if (session.phase === "halted" || session.activeTui !== null) return false;
 
-      const result = runCommand(command);
+      const context: CommandContext = {
+        theme,
+        now: new Date(),
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        platform: getPlatform(),
+        userAgent: navigator.userAgent,
+        uptimeMs: performance.now(),
+      };
+      const result = runCommand(command, context);
       if (result.type === "theme") setTheme(result.mode);
       dispatch({ type: "submit", command, result });
       return true;
     },
-    [session.phase, setTheme],
+    [session.phase, session.activeTui, theme, setTheme],
   );
 
+  const exitTui = useCallback(() => dispatch({ type: "exit-tui" }), []);
   const powerOn = useCallback(() => window.location.reload(), []);
 
   return {
     entries: session.entries,
     commands: session.commands,
     isHalted: session.phase === "halted",
+    activeTui: session.activeTui,
     submit,
+    exitTui,
     powerOn,
   };
 }

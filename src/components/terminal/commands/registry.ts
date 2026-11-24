@@ -1,3 +1,4 @@
+import { buildFetchOutput } from "./fetch";
 import { buildCommandHelp, buildHelpOutput } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
 import {
@@ -56,6 +57,16 @@ const SHUTDOWN_COMMAND: CommandDefinition = {
   },
 };
 
+const FETCH_COMMAND: CommandDefinition = {
+  name: "neofetch",
+  description: "Show system and portfolio info",
+  run: (_args, context) => ({
+    type: "output",
+    text: buildFetchOutput(context),
+    isError: false,
+  }),
+};
+
 // Commands reject extra arguments unless they explicitly opt in with acceptsArgs.
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
@@ -90,6 +101,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
       isError: false,
     }),
   },
+  FETCH_COMMAND,
+  {
+    name: "projects",
+    description: "Browse projects in an interactive TUI",
+    run: () => ({ type: "tui", view: "projects" }),
+  },
   {
     name: "reboot",
     description: "Reboot the terminal (reload the page)",
@@ -120,6 +137,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     },
   },
   {
+    ...FETCH_COMMAND,
+    name: "fastfetch",
+    description: "Alias for neofetch",
+    hidden: true,
+  },
+  {
     name: "sudo",
     description: "Run a command as superuser",
     hidden: true,
@@ -136,7 +159,9 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     run: (args) => {
       // Ignore flags when finding the path, but keep them to tell `rm /` from `rm -r /`.
       const flags = args.filter((arg) => arg.startsWith("-"));
-      const recursive = flags.some((flag) => flag.includes("r") || flag.includes("R"));
+      const recursive = flags.some(
+        (flag) => flag.includes("r") || flag.includes("R"),
+      );
       const paths = args.filter((arg) => !arg.startsWith("-"));
       const target = paths[paths.length - 1];
 

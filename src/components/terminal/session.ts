@@ -1,4 +1,4 @@
-import type { CommandResult } from "./commands";
+import type { CommandResult, TuiView } from "./commands";
 import type { TerminalEntry } from "./types";
 
 export type PendingAction =
@@ -12,12 +12,14 @@ export type SessionState = {
   commands: string[];
   phase: "running" | "halted";
   pendingAction: PendingAction;
+  activeTui: TuiView | null;
   // Never reset on clear: React keys must stay unique across a screen wipe.
   nextEntryId: number;
 };
 
 export type SessionAction =
   | { type: "submit"; command: string; result: CommandResult }
+  | { type: "exit-tui" }
   | { type: "halt" };
 
 export function createInitialSession(): SessionState {
@@ -26,6 +28,7 @@ export function createInitialSession(): SessionState {
     commands: [],
     phase: "running",
     pendingAction: null,
+    activeTui: null,
     nextEntryId: 0,
   };
 }
@@ -34,6 +37,9 @@ export function buildOutputEntry(id: number, result: CommandResult): TerminalEnt
   switch (result.type) {
     case "component":
       return { id, kind: "output", text: "", view: result.view };
+    case "tui":
+      // The TUI replaces the screen; only its input line is kept in history.
+      return { id, kind: "output", text: "" };
     case "theme":
       return {
         id,
@@ -58,25 +64,35 @@ export function sessionReducer(
   state: SessionState,
   action: SessionAction,
 ): SessionState {
-  if (action.type === "halt") {
-    return { ...state, phase: "halted", pendingAction: null };
+  if (action.type === "exit-tui") {
+    return state.activeTui === null ? state : { ...state, activeTui: null };
   }
 
-  if (state.phase === "halted") return state;
+  if (action.type === "halt") {
+    return { ...state, phase: "halted", pendingAction: null, activeTui: null };
+  }
+
+  // A TUI owns the keyboard until it exits, so shell submissions are ignored.
+  if (state.phase === "halted" || state.activeTui !== null) return state;
 
   const { command, result } = action;
   // Record every non-blank submission, including errors and "clear", like a real shell.
   const commands = command.trim() ? [...state.commands, command] : state.commands;
-  // Clear renders no entry, so it does not consume an id.
-  const consumedIds = result.type === "blank" ? 1 : result.type === "clear" ? 0 : 2;
+  // `clear` renders no entry; `blank` and `tui` render only the input line.
+  const consumedIds =
+    result.type === "clear" ? 0 : result.type === "blank" || result.type === "tui" ? 1 : 2;
   const nextEntryId = state.nextEntryId + consumedIds;
   let entries = state.entries;
   let pendingAction = state.pendingAction;
+  let activeTui: TuiView | null = state.activeTui;
   let entryResult: CommandResult = result;
 
   switch (result.type) {
     case "clear":
       entries = [];
+      break;
+    case "tui":
+      activeTui = result.view;
       break;
     case "reboot":
       // Only lifecycle commands replace an already scheduled action.
@@ -99,7 +115,6 @@ export function sessionReducer(
       break;
     }
     case "blank":
-      break;
     default:
       break;
   }
@@ -110,11 +125,12 @@ export function sessionReducer(
       kind: "input",
       text: command,
     };
-    entries =
-      entryResult.type === "blank"
-        ? [...entries, inputEntry]
-        : [...entries, inputEntry, buildOutputEntry(state.nextEntryId + 1, entryResult)];
+    const hidesOutput =
+      entryResult.type === "blank" || entryResult.type === "tui";
+    entries = hidesOutput
+      ? [...entries, inputEntry]
+      : [...entries, inputEntry, buildOutputEntry(state.nextEntryId + 1, entryResult)];
   }
 
-  return { ...state, entries, commands, pendingAction, nextEntryId };
+  return { ...state, entries, commands, pendingAction, activeTui, nextEntryId };
 }

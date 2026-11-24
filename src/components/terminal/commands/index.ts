@@ -1,10 +1,20 @@
+import { createDefaultCommandContext } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
-import type { CommandDefinition, CommandResult } from "./types";
+import type {
+  CommandContext,
+  CommandDefinition,
+  CommandResult,
+} from "./types";
 
 export { THEME_MODES } from "./types";
-export type { CommandResult, ThemeMode } from "./types";
+export type {
+  CommandContext,
+  CommandResult,
+  ThemeMode,
+  TuiView,
+} from "./types";
 
 function rejectArguments(command: CommandDefinition): CommandResult {
   return {
@@ -28,7 +38,10 @@ function showsCommandHelp(command: CommandDefinition) {
   return isVisibleCommand(command) && command.name !== "echo";
 }
 
-export function runCommand(raw: string): CommandResult {
+export function runCommand(
+  raw: string,
+  context: CommandContext = createDefaultCommandContext(),
+): CommandResult {
   const [name, ...args] = tokenize(raw);
   // Blank Enter still produces a result (an empty input line), never null.
   if (!name) return { type: "blank" };
@@ -53,5 +66,5 @@ export function runCommand(raw: string): CommandResult {
     return rejectArguments(command);
   }
 
-  return command.run(args);
+  return command.run(args, context);
 }

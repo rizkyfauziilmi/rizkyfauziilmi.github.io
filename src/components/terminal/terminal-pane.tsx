@@ -11,6 +11,7 @@ import { useCommandHistory, useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
 import { HaltedScreen, TerminalEntryView } from "./output";
+import { ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
@@ -28,7 +29,15 @@ export function TerminalPane({
   placeholder = DEFAULT_PLACEHOLDER,
 }: TerminalPaneProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { entries, commands, submit, isHalted, powerOn } = useTerminalHistory();
+  const {
+    entries,
+    commands,
+    submit,
+    isHalted,
+    activeTui,
+    exitTui,
+    powerOn,
+  } = useTerminalHistory();
   const { value, changeValue, navigate, reset } = useCommandHistory(
     commands,
     inputRef,
@@ -68,16 +77,27 @@ export function TerminalPane({
 
   const runValue = useCallback(() => execute(value), [execute, value]);
   const runHelp = useCallback(() => execute("help"), [execute]);
+  const leaveTui = useCallback(() => {
+    exitTui();
+    focusInput();
+  }, [exitTui, focusInput]);
+
+  const showsTui = !isHalted && activeTui !== null;
 
   return (
     // min-h-0 lets the pane shrink in the flex column; scrolling stays here
-    // so the title bar is never pushed off-screen.
+    // so the title bar is never pushed off-screen. The TUI owns its own scroll.
     <div
       ref={scrollRef}
-      className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
+      className={
+        "min-h-0 flex-1 px-4 py-2 font-mono text-sm " +
+        (showsTui ? "overflow-hidden" : "overflow-y-auto")
+      }
     >
       {isHalted ? (
         <HaltedScreen onPowerOn={powerOn} />
+      ) : activeTui === "projects" ? (
+        <ProjectsTui onExit={leaveTui} />
       ) : (
         <div className="flex flex-col gap-1">
           {entries.map((entry) => (

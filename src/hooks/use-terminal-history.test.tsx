@@ -99,6 +99,15 @@ describe("useTerminalHistory", () => {
     expect(localStorage.getItem("vite-ui-theme")).toBe("dark");
   });
 
+  it("passes the active theme to the neofetch command", () => {
+    const { result } = renderHook(() => useTerminalHistory(), { wrapper });
+
+    act(() => result.current.submit("theme dark"));
+    act(() => result.current.submit("neofetch"));
+
+    expect(result.current.entries.at(-1)?.text).toContain("Theme:      dark");
+  });
+
   it("keeps entry ids unique after the screen is cleared", () => {
     const { result } = renderHook(() => useTerminalHistory(), { wrapper });
 
@@ -118,5 +127,26 @@ describe("useTerminalHistory", () => {
 
     expect(result.current.isHalted).toBe(false);
     expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("owns submission while the projects tui is active", () => {
+    const { result } = renderHook(() => useTerminalHistory(), { wrapper });
+
+    act(() => result.current.submit("projects"));
+    expect(result.current.activeTui).toBe("projects");
+
+    let accepted = true;
+    act(() => {
+      accepted = result.current.submit("help");
+    });
+    expect(accepted).toBe(false);
+
+    act(() => result.current.exitTui());
+    expect(result.current.activeTui).toBeNull();
+
+    act(() => {
+      accepted = result.current.submit("help");
+    });
+    expect(accepted).toBe(true);
   });
 });

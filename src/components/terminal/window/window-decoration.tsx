@@ -1,9 +1,14 @@
 import { MinusIcon, SquareIcon, XIcon } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
+
 // Decorative only: real buttons would be focusable and announced by screen
 // readers even though they have no action, while Tab is reserved for the input.
-const DECORATION_CLASSNAME =
-  "inline-flex size-6 items-center justify-center rounded-full [&>svg]:size-3";
+// The shadcn button scale still owns the visuals via its variant.
+const DECORATION_CLASSNAME = buttonVariants({
+  variant: "window-decoration",
+  size: "window-decoration",
+});
 
 export function WindowDecoration() {
   return (

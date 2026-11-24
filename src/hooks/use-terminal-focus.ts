@@ -30,7 +30,7 @@ export function useTerminalFocus() {
       if (window.getSelection()?.toString()) return;
       if (
         (event.target as HTMLElement).closest(
-          "[data-slot='input-group-control']",
+          "[data-slot='input-group-control'], [data-tui-interactive]",
         )
       ) {
         return;

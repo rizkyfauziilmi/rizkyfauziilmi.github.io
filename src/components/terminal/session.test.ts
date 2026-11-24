@@ -60,4 +60,38 @@ describe("sessionReducer", () => {
 
     expect(next).toBe(halted);
   });
+
+  it("activates and exits a tui without adding an output line", () => {
+    let state = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "projects",
+      result: { type: "tui", view: "projects" },
+    });
+
+    expect(state.activeTui).toBe("projects");
+    expect(state.entries).toEqual([
+      { id: 0, kind: "input", text: "projects" },
+    ]);
+    expect(state.nextEntryId).toBe(1);
+
+    const ignored = sessionReducer(state, {
+      type: "submit",
+      command: "help",
+      result: output("help text"),
+    });
+    expect(ignored).toBe(state);
+
+    state = sessionReducer(state, { type: "exit-tui" });
+    expect(state.activeTui).toBeNull();
+  });
+
+  it("clears the active tui when halted", () => {
+    const active = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "projects",
+      result: { type: "tui", view: "projects" },
+    });
+
+    expect(sessionReducer(active, { type: "halt" }).activeTui).toBeNull();
+  });
 });
