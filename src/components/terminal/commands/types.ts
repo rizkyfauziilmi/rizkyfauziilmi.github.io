@@ -1,13 +1,14 @@
-export const THEME_MODES = ["dark", "light", "system"] as const;
-export type ThemeMode = (typeof THEME_MODES)[number];
+import type { ThemeMode } from "@/lib/theme";
 
-export function isThemeMode(value: string | undefined): value is ThemeMode {
-  return THEME_MODES.includes(value as ThemeMode);
-}
+export { isThemeMode, THEME_MODES } from "@/lib/theme";
+export type { ThemeMode } from "@/lib/theme";
+
+export type TuiView = "projects";
 
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }
   | { type: "component"; view: "about" }
+  | { type: "tui"; view: TuiView }
   | { type: "theme"; mode: ThemeMode; text: string }
   | { type: "reboot"; text: string }
   | { type: "shutdown"; delayMs: number; text: string }
@@ -20,6 +21,16 @@ export type CommandArgument = {
   description: string;
 };
 
+// Snapshot supplied by the shell so commands stay pure and testable.
+export type CommandContext = {
+  theme: ThemeMode;
+  now: Date;
+  viewport: { width: number; height: number };
+  platform: string;
+  userAgent: string;
+  uptimeMs: number;
+};
+
 export type CommandDefinition = {
   name: string;
   description: string;
@@ -29,5 +40,5 @@ export type CommandDefinition = {
   acceptsArgs?: boolean;
   // Hidden commands stay runnable but are omitted from help, including -h.
   hidden?: boolean;
-  run: (args: string[]) => CommandResult;
+  run: (args: string[], context: CommandContext) => CommandResult;
 };

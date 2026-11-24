@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { createDefaultCommandContext } from "./fetch";
 import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandDefinition } from "./types";
 
@@ -10,14 +11,14 @@ function findCommand(name: string): CommandDefinition {
 }
 
 function outputFor(name: string, args: string[]): string {
-  const result = findCommand(name).run(args);
+  const result = findCommand(name).run(args, createDefaultCommandContext());
   if (result.type !== "output") throw new Error("Expected an output result");
   return result.text;
 }
 
 describe("hidden easter eggs", () => {
-  it("marks sudo, rm and whoami as hidden", () => {
-    for (const name of ["sudo", "rm", "whoami"]) {
+  it("marks fastfetch, sudo, rm and whoami as hidden", () => {
+    for (const name of ["fastfetch", "sudo", "rm", "whoami"]) {
       expect(findCommand(name).hidden).toBe(true);
     }
   });

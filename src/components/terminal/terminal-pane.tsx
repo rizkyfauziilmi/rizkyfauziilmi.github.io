@@ -9,9 +9,9 @@ import {
 import { InputGroup } from "@/components/ui/input-group";
 import { useCommandHistory, useTerminalHistory } from "@/hooks";
 import { getPromptWidth, PROMPT } from "./constants";
-import { BlockCaretInput, TerminalInputLine, TerminalPrompt } from "./input";
-import { HaltedScreen, TerminalOutputLine, TERMINAL_VIEWS } from "./output";
-import type { TerminalEntry } from "./types";
+import { BlockCaretInput, TerminalPrompt } from "./input";
+import { HaltedScreen, TerminalEntryView } from "./output";
+import { ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
@@ -29,7 +29,15 @@ export function TerminalPane({
   placeholder = DEFAULT_PLACEHOLDER,
 }: TerminalPaneProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { entries, commands, submit, isHalted, powerOn } = useTerminalHistory();
+  const {
+    entries,
+    commands,
+    submit,
+    isHalted,
+    activeTui,
+    exitTui,
+    powerOn,
+  } = useTerminalHistory();
   const { value, changeValue, navigate, reset } = useCommandHistory(
     commands,
     inputRef,
@@ -58,48 +66,48 @@ export function TerminalPane({
     return () => observer.disconnect();
   }, [scrollToEnd]);
 
-  const execute = (command: string) => {
-    if (!submit(command)) return;
-    reset();
+  const execute = useCallback(
+    (command: string) => {
+      if (!submit(command)) return;
+      reset();
+      focusInput();
+    },
+    [submit, reset, focusInput],
+  );
+
+  const runValue = useCallback(() => execute(value), [execute, value]);
+  const runHelp = useCallback(() => execute("help"), [execute]);
+  const leaveTui = useCallback(() => {
+    exitTui();
     focusInput();
-  };
+  }, [exitTui, focusInput]);
 
-  const renderEntry = (entry: TerminalEntry) => {
-    if (entry.kind === "input") {
-      return (
-        <TerminalInputLine
-          key={entry.id}
-          prompt={prompt}
-          text={entry.text}
-          indent={indent}
-        />
-      );
-    }
-
-    const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
-    if (View) return <View key={entry.id} entry={entry} />;
-
-    return (
-      <TerminalOutputLine
-        key={entry.id}
-        text={entry.text}
-        isError={entry.isError}
-      />
-    );
-  };
+  const showsTui = !isHalted && activeTui !== null;
 
   return (
     // min-h-0 lets the pane shrink in the flex column; scrolling stays here
-    // so the title bar is never pushed off-screen.
+    // so the title bar is never pushed off-screen. The TUI owns its own scroll.
     <div
       ref={scrollRef}
-      className="min-h-0 flex-1 overflow-y-auto px-4 py-2 font-mono text-sm"
+      className={
+        "min-h-0 flex-1 px-4 py-2 font-mono text-sm " +
+        (showsTui ? "overflow-hidden" : "overflow-y-auto")
+      }
     >
       {isHalted ? (
         <HaltedScreen onPowerOn={powerOn} />
+      ) : activeTui === "projects" ? (
+        <ProjectsTui onExit={leaveTui} />
       ) : (
         <div className="flex flex-col gap-1">
-          {entries.map(renderEntry)}
+          {entries.map((entry) => (
+            <TerminalEntryView
+              key={entry.id}
+              entry={entry}
+              prompt={prompt}
+              indent={indent}
+            />
+          ))}
           <InputGroup variant="none-style">
             <TerminalPrompt prompt={prompt} />
             <BlockCaretInput
@@ -108,8 +116,8 @@ export function TerminalPane({
               value={value}
               onChange={changeValue}
               onHistoryNavigate={navigate}
-              onSubmit={() => execute(value)}
-              onHelp={() => execute("help")}
+              onSubmit={runValue}
+              onHelp={runHelp}
               placeholder={placeholder}
             />
           </InputGroup>

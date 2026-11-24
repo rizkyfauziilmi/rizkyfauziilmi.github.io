@@ -17,6 +17,16 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // Terminal controls: square, monospaced, and inverted on hover.
+        tui: "rounded-none border-border bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        // Terminal link without button chrome; paired with size "tui-link".
+        "tui-link":
+          "rounded-none border-transparent bg-transparent text-primary underline-offset-4 hover:underline",
+        // Power-on control on the halted screen.
+        halted:
+          "border-green-400/40 bg-transparent text-green-300 hover:bg-green-400/10 hover:text-green-200",
+        // Decorative window dots use the button scale without being buttons.
+        "window-decoration": "bg-transparent",
       },
       size: {
         default:
@@ -30,6 +40,9 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        tui: "h-6 gap-1 rounded-none px-2 font-mono text-[0.65rem]",
+        "tui-link": "h-auto gap-1 p-0 font-mono text-sm",
+        "window-decoration": "size-6 rounded-full p-0 [&>svg]:size-3!",
       },
     },
     defaultVariants: {
@@ -48,6 +61,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
+      data-variant={variant}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

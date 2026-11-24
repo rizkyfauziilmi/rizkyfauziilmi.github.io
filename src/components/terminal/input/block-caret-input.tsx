@@ -1,4 +1,8 @@
-import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
+import {
+  useCallback,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject,
+} from "react";
 import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
@@ -35,36 +39,39 @@ export function BlockCaretInput({
   const { mirrorRef, prefixRef, markerRef, caretStyle, showCaret } =
     useBlockCaret(inputRef, value);
 
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      (event.key === "?" || event.key === "/")
-    ) {
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+      // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        (event.key === "?" || event.key === "/")
+      ) {
+        event.preventDefault();
+        onHelp();
+        return;
+      }
+
+      // Only swallow the key when history actually handled it; otherwise native
+      // caret navigation stays intact. Modified arrows are left alone too.
+      if (
+        (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        !event.shiftKey
+      ) {
+        const direction: HistoryDirection =
+          event.key === "ArrowUp" ? "previous" : "next";
+        if (onHistoryNavigate(direction)) event.preventDefault();
+        return;
+      }
+
+      if (event.key !== "Enter") return;
       event.preventDefault();
-      onHelp();
-      return;
-    }
-
-    // Only swallow the key when history actually handled it; otherwise native
-    // caret navigation stays intact. Modified arrows are left alone too.
-    if (
-      (event.key === "ArrowUp" || event.key === "ArrowDown") &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.altKey &&
-      !event.shiftKey
-    ) {
-      const direction: HistoryDirection =
-        event.key === "ArrowUp" ? "previous" : "next";
-      if (onHistoryNavigate(direction)) event.preventDefault();
-      return;
-    }
-
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    onSubmit();
-  };
+      onSubmit();
+    },
+    [onHelp, onHistoryNavigate, onSubmit],
+  );
 
   return (
     <div className={cn("relative min-w-0 flex-1", className)}>

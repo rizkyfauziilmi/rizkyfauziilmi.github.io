@@ -1,5 +1,6 @@
 import type { ThemeMode } from "./commands";
 
+export type { TuiView } from "./commands";
 export type TerminalView = "about" | "theme";
 
 export type TerminalEntry = {

@@ -1,76 +1,79 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
-type Theme = "dark" | "light" | "system";
+import { isThemeMode, type ThemeMode } from "@/lib/theme";
+import { ThemeProviderContext } from "./theme-context";
 
 type ThemeProviderProps = {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
+  children: ReactNode;
+  defaultTheme?: ThemeMode;
   storageKey?: string;
 };
 
-type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-};
-
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+function readStoredTheme(storageKey: string, fallback: ThemeMode): ThemeMode {
+  try {
+    const stored = localStorage.getItem(storageKey);
+    return isThemeMode(stored) ? stored : fallback;
+  } catch {
+    // Storage can be unavailable (private mode); fall back to the in-memory theme.
+    return fallback;
+  }
+}
 
 export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
-  ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  const [theme, setThemeState] = useState<ThemeMode>(() =>
+    readStoredTheme(storageKey, defaultTheme),
   );
 
   useEffect(() => {
     const root = window.document.documentElement;
-
     root.classList.remove("light", "dark");
 
     // "system" resolves through matchMedia and applies a concrete class;
     // only explicit choices are stored.
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-
-      root.classList.add(systemTheme);
+    if (theme !== "system") {
+      root.classList.add(theme);
       return;
     }
 
-    root.classList.add(theme);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      root.classList.remove("light", "dark");
+      root.classList.add(media.matches ? "dark" : "light");
+    };
+
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
   }, [theme]);
 
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
+  const setTheme = useCallback(
+    (next: ThemeMode) => {
       // Persist here so a reload keeps the terminal's theme command effective.
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+      try {
+        localStorage.setItem(storageKey, next);
+      } catch {
+        // The in-memory theme still works when storage is blocked.
+      }
+      setThemeState(next);
     },
-  };
+    [storageKey],
+  );
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
   );
 }
-
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider");
-
-  return context;
-};

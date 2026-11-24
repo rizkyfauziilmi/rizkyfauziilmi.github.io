@@ -13,12 +13,7 @@ export function HaltedScreen({ onPowerOn }: HaltedScreenProps) {
       <p className="text-sm text-green-400/70">
         The terminal has been powered off.
       </p>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onPowerOn}
-        className="border-green-400/40 bg-transparent text-green-300 hover:bg-green-400/10 hover:text-green-200"
-      >
+      <Button variant="halted" size="sm" onClick={onPowerOn}>
         <Power /> Power on
       </Button>
     </div>

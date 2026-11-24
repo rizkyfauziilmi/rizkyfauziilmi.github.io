@@ -1,12 +1,56 @@
 import {
   useCallback,
   useLayoutEffect,
-  useRef,
-  useState,
+  useReducer,
   type RefObject,
 } from "react";
 
 export type HistoryDirection = "previous" | "next";
+
+type CommandHistoryState = {
+  value: string;
+  // Text from before history browsing: scopes prefix filtering and is restored
+  // when navigating past the newest entry.
+  draft: string;
+  // null means "not browsing history"; otherwise it points into commands[].
+  activeIndex: number | null;
+  // Incremented on every recall so the caret effect runs even when React bails
+  // out because the recalled text equals the current value.
+  caretRequestId: number;
+};
+
+type CommandHistoryAction =
+  | { type: "change"; value: string }
+  | { type: "recall"; value: string; index: number | null }
+  | { type: "reset" };
+
+function createInitialState(): CommandHistoryState {
+  return { value: "", draft: "", activeIndex: null, caretRequestId: 0 };
+}
+
+function reducer(
+  state: CommandHistoryState,
+  action: CommandHistoryAction,
+): CommandHistoryState {
+  switch (action.type) {
+    case "change":
+      return {
+        ...state,
+        value: action.value,
+        draft: action.value,
+        activeIndex: null,
+      };
+    case "recall":
+      return {
+        value: action.value,
+        draft: state.draft,
+        activeIndex: action.index,
+        caretRequestId: state.caretRequestId + 1,
+      };
+    case "reset":
+      return { ...createInitialState(), caretRequestId: state.caretRequestId };
+  }
+}
 
 // Always filter by the original draft, not the recalled text, so repeated
 // ArrowUp keeps the same search scope.
@@ -36,16 +80,10 @@ export function useCommandHistory(
   commands: string[],
   inputRef: RefObject<HTMLTextAreaElement | null>,
 ) {
-  const [value, setValue] = useState("");
-  // null means "not browsing history"; otherwise it points into commands[].
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const draftRef = useRef("");
-  const pendingCaretRef = useRef(false);
+  const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
 
   const changeValue = useCallback((next: string) => {
-    draftRef.current = next;
-    setActiveIndex(null);
-    setValue(next);
+    dispatch({ type: "change", value: next });
   }, []);
 
   const moveCaretToEnd = useCallback(() => {
@@ -56,31 +94,18 @@ export function useCommandHistory(
     input.setSelectionRange(end, end);
   }, [inputRef]);
 
-  const selectCommand = useCallback(
-    (nextValue: string, nextIndex: number | null) => {
-      pendingCaretRef.current = true;
-      setActiveIndex(nextIndex);
-      setValue(nextValue);
-      // rAF covers the case where React bails out because the recalled text
-      // equals the current value, so the layout effect would not run.
-      requestAnimationFrame(moveCaretToEnd);
-    },
-    [moveCaretToEnd],
-  );
-
   const navigate = useCallback(
     (direction: HistoryDirection) => {
-      const prefix = draftRef.current;
       const nextIndex = findCommandIndex(
         commands,
         direction,
-        activeIndex,
-        prefix,
+        state.activeIndex,
+        state.draft,
       );
 
       if (nextIndex === null) {
-        if (direction === "next" && activeIndex !== null) {
-          selectCommand(prefix, null);
+        if (direction === "next" && state.activeIndex !== null) {
+          dispatch({ type: "recall", value: state.draft, index: null });
           return true;
         }
         // Returning false lets the caller skip preventDefault, so the textarea
@@ -88,23 +113,24 @@ export function useCommandHistory(
         return false;
       }
 
-      selectCommand(commands[nextIndex], nextIndex);
+      dispatch({
+        type: "recall",
+        value: commands[nextIndex],
+        index: nextIndex,
+      });
       return true;
     },
-    [activeIndex, commands, selectCommand],
+    [commands, state.activeIndex, state.draft],
   );
 
   const reset = useCallback(() => {
-    draftRef.current = "";
-    setActiveIndex(null);
-    setValue("");
+    dispatch({ type: "reset" });
   }, []);
 
   useLayoutEffect(() => {
-    if (!pendingCaretRef.current) return;
-    pendingCaretRef.current = false;
+    if (state.caretRequestId === 0) return;
     moveCaretToEnd();
-  }, [moveCaretToEnd, value]);
+  }, [state.caretRequestId, moveCaretToEnd]);
 
-  return { value, changeValue, navigate, reset };
+  return { value: state.value, changeValue, navigate, reset };
 }
