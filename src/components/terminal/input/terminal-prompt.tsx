@@ -18,7 +18,7 @@ export function TerminalPrompt({
       variant="none-style"
       className={cn("absolute top-0 left-0 z-10 leading-5", className)}
     >
-      <InputGroupText className={cn("text-orange-300", textClassName)}>
+      <InputGroupText className={cn("text-orange-200", textClassName)}>
         {prompt}
       </InputGroupText>
     </InputGroupAddon>
