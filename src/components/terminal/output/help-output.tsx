@@ -45,6 +45,11 @@ function TipLine({ parts }: { parts: HelpTipPart[] }) {
 
 export function HelpOutput() {
   const help = buildHelpModel(COMMAND_DEFINITIONS);
+  const commandWidth =
+    Math.max(10, ...help.commands.map((command) => command.label.length)) + 2;
+  const commandColumns = {
+    gridTemplateColumns: `minmax(0, ${commandWidth}ch) minmax(0, 1fr)`,
+  };
 
   return (
     <div className="flex flex-col gap-3 pb-2 text-sm leading-5">
@@ -54,23 +59,24 @@ export function HelpOutput() {
 
       <section className="flex flex-col gap-1">
         <h3 className="font-mono text-muted-foreground">Usage:</h3>
-        <p className="font-mono">&lt;command&gt; [...flags] [...args]</p>
+        <p className="pl-4 font-mono">&lt;command&gt; [...flags] [...args]</p>
       </section>
 
       <section className="flex flex-col gap-1">
         <h3 className="font-mono text-muted-foreground">Commands:</h3>
-        <div className="grid gap-1">
+        <div className="grid gap-1 pl-4">
           {help.commands.map((command) => (
-            <div
-              key={command.name}
-              className="grid grid-cols-[minmax(0,18ch)_1fr] gap-2"
-            >
-              <span className="font-mono">{command.label}</span>
+            <div key={command.name} className="grid gap-2" style={commandColumns}>
+              <span className="min-w-0 break-words font-mono">
+                {command.label}
+              </span>
               <span>{command.description}</span>
             </div>
           ))}
-          <div className="grid grid-cols-[minmax(0,18ch)_1fr] gap-2">
-            <span className="font-mono">&lt;command&gt; -h</span>
+          <div className="grid gap-2" style={commandColumns}>
+            <span className="min-w-0 break-words font-mono">
+              &lt;command&gt; -h
+            </span>
             <span>Print help text for a command</span>
           </div>
         </div>
@@ -78,7 +84,7 @@ export function HelpOutput() {
 
       <section className="flex flex-col gap-1">
         <h3 className="font-mono text-muted-foreground">Flags:</h3>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pl-4">
           <span className="font-mono">-h, --help</span>
           <span>Display this menu and exit</span>
         </div>
@@ -86,9 +92,11 @@ export function HelpOutput() {
 
       <section className="flex flex-col gap-1.5">
         <h3 className="font-mono text-muted-foreground">Tips:</h3>
-        {help.tips.map((parts, index) => (
-          <TipLine key={`tip-${index}`} parts={parts} />
-        ))}
+        <div className="flex flex-col gap-1.5 pl-4">
+          {help.tips.map((parts, index) => (
+            <TipLine key={`tip-${index}`} parts={parts} />
+          ))}
+        </div>
       </section>
     </div>
   );
