@@ -7,14 +7,13 @@ import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
 import { useBlockCaret, type HistoryDirection } from "@/hooks";
-import { INPUT_CLASSNAME } from "../constants";
+import { INPUT_CLASSNAME, TERMINAL_INDENT } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
 import { CommandHighlight } from "./command-highlight";
 
 interface BlockCaretInputProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
-  indent: string;
   value: string;
   onChange: (value: string) => void;
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
@@ -27,7 +26,6 @@ interface BlockCaretInputProps {
 
 export function BlockCaretInput({
   inputRef,
-  indent,
   value,
   onChange,
   onHistoryNavigate,
@@ -82,7 +80,7 @@ export function BlockCaretInput({
         value={value}
         placeholder={placeholder}
         className={cn(INPUT_CLASSNAME, "text-transparent")}
-        style={{ textIndent: indent }}
+        style={{ textIndent: TERMINAL_INDENT }}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
       />
@@ -95,7 +93,7 @@ export function BlockCaretInput({
           INPUT_CLASSNAME,
           "pointer-events-none absolute inset-0 whitespace-pre-wrap",
         )}
-        style={{ textIndent: indent }}
+        style={{ textIndent: TERMINAL_INDENT }}
       >
         <CommandHighlight value={value} />
       </div>
@@ -104,7 +102,7 @@ export function BlockCaretInput({
         prefixRef={prefixRef}
         markerRef={markerRef}
         className={INPUT_CLASSNAME}
-        indent={indent}
+        indent={TERMINAL_INDENT}
       />
       {showCaret && caretStyle && (
         <BlockCaret style={caretStyle} className={caretClassName} />

@@ -13,5 +13,6 @@ export type TerminalEntry = {
 };
 
 export type TerminalViewProps = {
-  entry: TerminalEntry;
+  text: string;
+  themeMode?: ThemeMode;
 };

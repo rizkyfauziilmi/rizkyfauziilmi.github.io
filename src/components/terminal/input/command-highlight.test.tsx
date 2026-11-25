@@ -38,7 +38,7 @@ describe("CommandHighlight", () => {
 
 describe("TerminalInputLine", () => {
   it("keeps the submitted text and highlights known commands", () => {
-    render(<TerminalInputLine prompt="~$" indent="3ch" text="help" />);
+    render(<TerminalInputLine text="help" />);
 
     const token = screen.getByText("help");
     expect(token.getAttribute("data-highlight-kind")).toBe("command");
@@ -51,7 +51,6 @@ describe("BlockCaretInput", () => {
     const { container } = render(
       <BlockCaretInput
         inputRef={createRef<HTMLTextAreaElement>()}
-        indent="3ch"
         value="help"
         onChange={() => {}}
         onHistoryNavigate={() => false}

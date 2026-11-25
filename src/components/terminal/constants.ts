@@ -13,3 +13,7 @@ export const INPUT_CLASSNAME = "break-words text-sm leading-5 caret-transparent"
 export function getPromptWidth(prompt: string) {
   return `${prompt.length + 1}ch`;
 }
+
+// The shell prompt is fixed, so every line can share the same indent instead
+// of threading it through components that only forward it.
+export const TERMINAL_INDENT = getPromptWidth(PROMPT);
