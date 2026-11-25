@@ -1,11 +1,50 @@
+import { getCommandFlags } from "./flags";
 import type { CommandDefinition } from "./types";
 
-// Aligned without padEnd: emoji glyphs are not one monospace cell wide.
-const HISTORY_TIPS = [
-  "💡 ↑ / ↓ browse commands from your history",
-  '💡 type a prefix (e.g. th) then ↑ to filter matches',
-  "💡 classic Unix troublemakers still hang around here",
-].join("\n");
+export type HelpCommand = {
+  name: string;
+  usageArgs?: string;
+  label: string;
+  description: string;
+};
+
+export type HelpTipPart =
+  { type: "key"; value: string } | { type: "text"; value: string };
+
+export type HelpModel = {
+  version: string;
+  commands: HelpCommand[];
+  tips: HelpTipPart[][];
+};
+
+const key = (value: string): HelpTipPart => ({ type: "key", value });
+const text = (value: string): HelpTipPart => ({ type: "text", value });
+
+export const HELP_TIPS: HelpTipPart[][] = [
+  [
+    key("Tab"),
+    text(
+      " completes commands, flags, or argument values; lists matches when ambiguous",
+    ),
+  ],
+  [
+    key("Tab"),
+    text(" cycles matches; "),
+    key("Shift"),
+    text("+"),
+    key("Tab"),
+    text(" goes back"),
+  ],
+  [key("Enter"), text(" inserts the selected match; press again to run")],
+  [key("Ctrl"), key("?"), text(" shows this menu")],
+  [key("↑"), key("↓"), text(" browse commands from your history")],
+  [
+    text("type a prefix (e.g. th), then "),
+    key("↑"),
+    text(" to filter matches"),
+  ],
+  [text("classic Unix troublemakers still hang around here")],
+];
 
 export function getCommandLabel(command: CommandDefinition) {
   return command.usageArgs
@@ -13,31 +52,21 @@ export function getCommandLabel(command: CommandDefinition) {
     : command.name;
 }
 
-export function buildHelpOutput(commands: CommandDefinition[]) {
-  // Hidden commands are still runnable, but never advertised in help.
-  const visible = commands.filter((command) => !command.hidden);
-  // Width comes from the registry, so new commands need no manual realignment.
-  const width =
-    Math.max(...visible.map((command) => getCommandLabel(command).length)) + 5;
-  const lines = visible.map(
-    (command) =>
-      `  ${getCommandLabel(command).padEnd(width)}${command.description}`,
-  );
-
-  return `Portfolio Terminal (${__APP_VERSION__}) - interactive command prompt.
-
-Usage: <command> [...flags] [...args]
-
-Commands:
-${lines.join("\n")}
-
-  ${"<command> -h".padEnd(width)}Print help text for a command
-
-Flags:
-  ${"-h, --help".padEnd(width)}Display this menu and exit
-
-Tips:
-${HISTORY_TIPS}`;
+/** Plain, serializable data for the HelpOutput component. */
+export function buildHelpModel(commands: CommandDefinition[]): HelpModel {
+  return {
+    version: __APP_VERSION__,
+    // Hidden commands are still runnable, but never advertised in help.
+    commands: commands
+      .filter((command) => !command.hidden)
+      .map((command) => ({
+        name: command.name,
+        usageArgs: command.usageArgs,
+        label: getCommandLabel(command),
+        description: command.description,
+      })),
+    tips: HELP_TIPS,
+  };
 }
 
 export function buildCommandHelp(command: CommandDefinition) {
@@ -57,10 +86,14 @@ ${command.examples.map((example) => `  ${example}`).join("\n")}
 `
     : "";
 
+  const flagsBlock = `
+Flags:
+${getCommandFlags(command)
+  .map(({ name, description }) => `  ${name.padEnd(9)}${description}`)
+  .join("\n")}`;
+
   return `${command.description}
 
 Usage: ${getCommandLabel(command)}
-${argumentsBlock}${examplesBlock}
-Flags:
-  -h, --help   Display this help text`;
+${argumentsBlock}${examplesBlock}${flagsBlock}`;
 }

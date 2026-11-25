@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 
 import type { ThemeMode } from "../commands";
-import type { TerminalEntry } from "../types";
+import type { TerminalViewProps } from "../types";
 
 const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
   dark: Moon,
@@ -9,13 +9,13 @@ const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
   system: Monitor,
 };
 
-export function ThemeOutput({ entry }: { entry: TerminalEntry }) {
-  const Icon = THEME_ICONS[entry.themeMode ?? "system"];
+export function ThemeOutput({ text, themeMode }: TerminalViewProps) {
+  const Icon = THEME_ICONS[themeMode ?? "system"];
 
   return (
     <div className="flex items-center gap-2 text-sm leading-5">
       <Icon className="size-4 shrink-0 text-orange-300" />
-      <span>{entry.text}</span>
+      <span>{text}</span>
     </div>
   );
 }

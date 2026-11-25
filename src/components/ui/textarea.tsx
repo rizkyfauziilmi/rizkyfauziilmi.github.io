@@ -1,9 +1,9 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const textareaVariants = cva(
-  "flex field-sizing-content min-w-0 w-full text-base transition-colors outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+  "flex field-sizing-content w-full min-w-0 text-base transition-colors outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
   {
     variants: {
       variant: {
@@ -17,8 +17,8 @@ const textareaVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
-)
+  },
+);
 
 function Textarea({
   className,
@@ -33,7 +33,7 @@ function Textarea({
       className={cn(textareaVariants({ variant, className }))}
       {...props}
     />
-  )
+  );
 }
 
-export { Textarea, textareaVariants }
+export { Textarea, textareaVariants };

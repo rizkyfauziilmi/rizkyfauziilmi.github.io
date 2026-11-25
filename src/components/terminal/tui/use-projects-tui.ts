@@ -25,7 +25,8 @@ export function projectsTuiReducer(
     case "move": {
       // The full-screen detail view owns the keyboard; no list navigation there.
       if (state.expandedId !== null || action.length <= 0) return state;
-      const offset = ((action.delta % action.length) + action.length) % action.length;
+      const offset =
+        ((action.delta % action.length) + action.length) % action.length;
       return {
         ...state,
         selectedIndex: (state.selectedIndex + offset) % action.length,
@@ -55,7 +56,7 @@ function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return false;
   return Boolean(
     (target as HTMLElement).isContentEditable ||
-      target.closest("input, textarea, select, [contenteditable='true']"),
+    target.closest("input, textarea, select, [contenteditable='true']"),
   );
 }
 
@@ -132,10 +133,7 @@ export function useProjectsTui(projects: Project[], onExit: () => void) {
     (index: number, id: string) => dispatch({ type: "select", index, id }),
     [],
   );
-  const closeDetail = useCallback(
-    () => dispatch({ type: "close-detail" }),
-    [],
-  );
+  const closeDetail = useCallback(() => dispatch({ type: "close-detail" }), []);
 
   return { ...state, selectAt, closeDetail };
 }

@@ -1,15 +1,47 @@
+import type { CompletionCatalog } from "./complete";
 import { createDefaultCommandContext } from "./fetch";
+import {
+  getDeclaredFlags,
+  getHelpTokens,
+  isHelpToken,
+  supportsHelpFlags,
+} from "./flags";
 import { buildCommandHelp } from "./help";
 import { tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
-import type {
-  CommandContext,
-  CommandDefinition,
-  CommandResult,
-} from "./types";
+import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
+export {
+  applyCandidate,
+  completeCommand,
+  getCompletionSpan,
+  type CommandCompletion,
+  type CompletionCatalog,
+  type CompletionSpan,
+} from "./complete";
 export { THEME_MODES } from "./types";
+
+// Every runnable command, including hidden eggs and aliases: highlighting must
+// agree with runCommand about what the shell recognises.
+export const KNOWN_COMMAND_NAMES: ReadonlySet<string> = new Set(
+  COMMAND_DEFINITIONS.map((command) => command.name),
+);
+
+/** Registry snapshot consumed by pure completion and the input hook. */
+export const COMMAND_CATALOG: CompletionCatalog = {
+  commandNames: KNOWN_COMMAND_NAMES,
+  commands: new Map(
+    COMMAND_DEFINITIONS.map((command) => [command.name, command]),
+  ),
+  flagsFor: (command, isFirstArgument) => [
+    ...getDeclaredFlags(command).map((flag) => flag.name),
+    ...(isFirstArgument ? getHelpTokens(command) : []),
+  ],
+};
+
 export type {
+  CommandDefinition,
+  ComponentView,
   CommandContext,
   CommandResult,
   ThemeMode,
@@ -24,18 +56,8 @@ function rejectArguments(command: CommandDefinition): CommandResult {
   };
 }
 
-function isHelpRequest(args: string[]) {
-  const [first] = args;
-  return first === "-h" || first === "--help" || first === "help";
-}
-
 function isVisibleCommand(command: CommandDefinition) {
   return !command.hidden;
-}
-
-// Eggs stay secret; echo treats help flags as ordinary text to print.
-function showsCommandHelp(command: CommandDefinition) {
-  return isVisibleCommand(command) && command.name !== "echo";
 }
 
 export function runCommand(
@@ -57,7 +79,7 @@ export function runCommand(
 
   // Help flags are checked before argument validation so "theme -h" is not
   // rejected as a bad argument.
-  if (showsCommandHelp(command) && isHelpRequest(args)) {
+  if (supportsHelpFlags(command) && isHelpToken(args[0])) {
     return { type: "output", text: buildCommandHelp(command), isError: false };
   }
 

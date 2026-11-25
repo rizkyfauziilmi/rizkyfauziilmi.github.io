@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCommandHelp, buildHelpOutput, getCommandLabel } from "./help";
+import { buildCommandHelp, buildHelpModel, getCommandLabel } from "./help";
 import type { CommandDefinition } from "./types";
 
 const command = (
@@ -25,18 +25,40 @@ describe("getCommandLabel", () => {
   });
 });
 
-describe("buildHelpOutput", () => {
-  it("lists visible commands but omits hidden ones", () => {
-    const output = buildHelpOutput([
+describe("buildHelpModel", () => {
+  it("keeps visible commands and omits hidden ones", () => {
+    const model = buildHelpModel([
       command({ name: "about", description: "Show intro" }),
+      command({
+        name: "theme",
+        description: "Set theme",
+        usageArgs: "<dark|light|system>",
+      }),
       command({ name: "sudo", description: "Secret", hidden: true }),
     ]);
 
-    expect(output).toContain("about");
-    expect(output).toContain("Show intro");
-    expect(output).not.toContain("sudo");
-    expect(output).toContain("<command> -h");
-    expect(output).toContain("-h, --help");
+    expect(model.commands.map((item) => item.name)).toEqual(["about", "theme"]);
+    expect(model.commands[1].label).toBe("theme <dark|light|system>");
+    expect(model.commands[1].description).toBe("Set theme");
+    expect(model.commands.some((item) => item.name === "sudo")).toBe(false);
+    expect(model.version).toBeTruthy();
+  });
+
+  it("exposes completion tips as key/text parts", () => {
+    const model = buildHelpModel([command({ name: "help" })]);
+    const flattened = model.tips
+      .flat()
+      .map((part) => part.value)
+      .join(" ");
+
+    expect(flattened).toContain("Tab");
+    expect(flattened).toContain(
+      "completes commands, flags, or argument values",
+    );
+    expect(flattened).toContain("lists matches when ambiguous");
+    expect(flattened).toContain("cycles matches");
+    expect(flattened).toContain("inserts the selected match");
+    expect(flattened).toContain("classic Unix troublemakers");
   });
 });
 
@@ -58,6 +80,19 @@ describe("buildCommandHelp", () => {
     expect(output).toContain("Examples:");
     expect(output).toContain("  shutdown now");
     expect(output).toContain("Flags:");
+  });
+
+  it("lists declared flags alongside the help flags", () => {
+    const output = buildCommandHelp(
+      command({
+        name: "rm",
+        flags: [{ name: "-r", description: "Remove recursively" }],
+      }),
+    );
+
+    expect(output).toContain("-r");
+    expect(output).toContain("Remove recursively");
+    expect(output).toContain("--help");
   });
 
   it("omits optional blocks when they are not defined", () => {

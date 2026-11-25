@@ -1,5 +1,5 @@
 import { buildFetchOutput } from "./fetch";
-import { buildCommandHelp, buildHelpOutput } from "./help";
+import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
 import {
   isThemeMode,
@@ -15,13 +15,18 @@ const SHUTDOWN_COMMAND: CommandDefinition = {
     {
       name: "now",
       description: "Power off immediately (only format that can close the tab)",
+      values: ["now"],
     },
     { name: "+N", description: "Minutes from now, e.g. +5 (+0 = now)" },
     {
       name: "HH:MM",
       description: "24-hour local time, e.g. 23:30 (tomorrow if past)",
     },
-    { name: "-c", description: "Cancel a scheduled shutdown" },
+    {
+      name: "-c",
+      description: "Cancel a scheduled shutdown",
+      values: ["-c"],
+    },
   ],
   examples: ["shutdown now", "shutdown +5", "shutdown 23:30", "shutdown -c"],
   acceptsArgs: true,
@@ -93,13 +98,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "help",
     description: "Display this help message",
-    // Pass the registry explicitly: help.ts must not import registry.ts or the
-    // two modules would form a cycle.
-    run: () => ({
-      type: "output",
-      text: buildHelpOutput(COMMAND_DEFINITIONS),
-      isError: false,
-    }),
+    // HelpOutput reads the registry directly; the result stays plain data.
+    run: () => ({ type: "component", view: "help" }),
   },
   FETCH_COMMAND,
   {
@@ -118,9 +118,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Set the color theme",
     usageArgs: "<dark|light|system>",
     arguments: [
-      { name: "dark", description: "Use the dark theme" },
-      { name: "light", description: "Use the light theme" },
-      { name: "system", description: "Follow the system preference" },
+      { name: "dark", description: "Use the dark theme", values: ["dark"] },
+      { name: "light", description: "Use the light theme", values: ["light"] },
+      {
+        name: "system",
+        description: "Follow the system preference",
+        values: ["system"],
+      },
     ],
     acceptsArgs: true,
     run: (args): CommandResult => {
@@ -156,6 +160,10 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     name: "rm",
     description: "Remove files or directories",
     hidden: true,
+    flags: [
+      { name: "-r", description: "Remove directories recursively" },
+      { name: "-R", description: "Alias for -r" },
+    ],
     run: (args) => {
       // Ignore flags when finding the path, but keep them to tell `rm /` from `rm -r /`.
       const flags = args.filter((arg) => arg.startsWith("-"));

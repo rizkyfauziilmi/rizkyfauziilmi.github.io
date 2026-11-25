@@ -1,26 +1,12 @@
-import { cn } from "@/lib/utils";
-
 import { InputGroupAddon, InputGroupText } from "@/components/ui/input-group";
 
-interface TerminalPromptProps {
-  prompt: string;
-  className?: string;
-  textClassName?: string;
-}
-
-export function TerminalPrompt({
-  prompt,
-  className,
-  textClassName,
-}: TerminalPromptProps) {
+export function TerminalPrompt({ prompt }: { prompt: string }) {
   return (
     <InputGroupAddon
       variant="none-style"
-      className={cn("absolute top-0 left-0 z-10 leading-5", className)}
+      className="absolute top-0 left-0 z-10 leading-5"
     >
-      <InputGroupText className={cn("text-orange-300", textClassName)}>
-        {prompt}
-      </InputGroupText>
+      <InputGroupText className="text-orange-200">{prompt}</InputGroupText>
     </InputGroupAddon>
   );
 }

@@ -75,9 +75,7 @@ describe("useTerminalHistory", () => {
     const { result } = renderHook(() => useTerminalHistory(), { wrapper });
 
     act(() => result.current.submit("shutdown -c"));
-    expect(result.current.entries.at(-1)?.text).toBe(
-      "No shutdown scheduled.",
-    );
+    expect(result.current.entries.at(-1)?.text).toBe("No shutdown scheduled.");
   });
 
   it("clears the screen without erasing command history", () => {

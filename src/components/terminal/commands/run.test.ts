@@ -127,30 +127,18 @@ describe("runCommand", () => {
     }
   });
 
-  it("hides easter eggs from the global help", () => {
-    const result = runCommand("help");
-    expect(result.type).toBe("output");
-    if (result.type === "output") {
-      for (const hidden of ["sudo", "whoami", "refusing to remove"]) {
-        expect(result.text).not.toContain(hidden);
-      }
-      expect(result.text).toContain("classic Unix troublemakers");
-    }
+  it("renders the global help as a component", () => {
+    expect(runCommand("help")).toEqual({ type: "component", view: "help" });
   });
 
   it("keeps clear as a screen-only result", () => {
     expect(runCommand("clear")).toEqual({ type: "clear" });
   });
 
-  it("opens the projects tui and describes it in help", () => {
+  it("opens the projects tui and routes global help to the component", () => {
     expect(runCommand("projects")).toEqual({ type: "tui", view: "projects" });
 
-    const help = runCommand("help");
-    expect(help.type).toBe("output");
-    if (help.type === "output") {
-      expect(help.text).toContain("projects");
-      expect(help.text).toContain("Browse projects in an interactive TUI");
-    }
+    expect(runCommand("help")).toEqual({ type: "component", view: "help" });
 
     const detail = runCommand("projects -h");
     expect(detail.type).toBe("output");
@@ -160,7 +148,10 @@ describe("runCommand", () => {
   });
 
   it("runs neofetch and its fastfetch alias with the supplied context", () => {
-    const context = { ...createDefaultCommandContext(), theme: "light" as const };
+    const context = {
+      ...createDefaultCommandContext(),
+      theme: "light" as const,
+    };
     const neofetch = runCommand("neofetch", context);
     const fastfetch = runCommand("fastfetch", context);
 
@@ -176,14 +167,8 @@ describe("runCommand", () => {
     }
   });
 
-  it("advertises neofetch but keeps the fastfetch alias hidden", () => {
-    const help = runCommand("help");
-    expect(help.type).toBe("output");
-    if (help.type === "output") {
-      expect(help.text).toContain("neofetch");
-      expect(help.text).toContain("Show system and portfolio info");
-      expect(help.text).not.toContain("fastfetch");
-    }
+  it("keeps the fastfetch alias hidden from per-command help", () => {
+    expect(runCommand("help")).toEqual({ type: "component", view: "help" });
 
     const aliasHelp = runCommand("fastfetch -h");
     expect(aliasHelp).toEqual(runCommand("fastfetch"));

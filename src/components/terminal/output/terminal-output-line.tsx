@@ -7,10 +7,7 @@ interface TerminalOutputLineProps {
   isError?: boolean;
 }
 
-export function TerminalOutputLine({
-  text,
-  isError,
-}: TerminalOutputLineProps) {
+export function TerminalOutputLine({ text, isError }: TerminalOutputLineProps) {
   return (
     <div
       className={cn(

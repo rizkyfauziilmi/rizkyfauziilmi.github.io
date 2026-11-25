@@ -16,7 +16,9 @@ afterEach(() => {
 
 describe("ThemeProvider", () => {
   it("throws when useTheme is used outside a provider", () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     expect(() => renderHook(() => useTheme())).toThrow(
       "useTheme must be used within a ThemeProvider",
@@ -37,23 +39,20 @@ describe("ThemeProvider", () => {
     let matches = false;
     const listeners = new Set<() => void>();
 
-    vi.stubGlobal(
-      "matchMedia",
-      (query: string) => ({
-        get matches() {
-          return matches;
-        },
-        media: query,
-        onchange: null,
-        addListener: () => {},
-        removeListener: () => {},
-        addEventListener: (_type: string, listener: () => void) =>
-          listeners.add(listener),
-        removeEventListener: (_type: string, listener: () => void) =>
-          listeners.delete(listener),
-        dispatchEvent: () => false,
-      }),
-    );
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      get matches() {
+        return matches;
+      },
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: (_type: string, listener: () => void) =>
+        listeners.add(listener),
+      removeEventListener: (_type: string, listener: () => void) =>
+        listeners.delete(listener),
+      dispatchEvent: () => false,
+    }));
 
     const { result } = renderHook(() => useTheme(), { wrapper });
     expect(document.documentElement.classList.contains("light")).toBe(true);

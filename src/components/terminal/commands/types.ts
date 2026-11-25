@@ -4,10 +4,11 @@ export { isThemeMode, THEME_MODES } from "@/lib/theme";
 export type { ThemeMode } from "@/lib/theme";
 
 export type TuiView = "projects";
+export type ComponentView = "about" | "help";
 
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }
-  | { type: "component"; view: "about" }
+  | { type: "component"; view: ComponentView }
   | { type: "tui"; view: TuiView }
   | { type: "theme"; mode: ThemeMode; text: string }
   | { type: "reboot"; text: string }
@@ -17,6 +18,13 @@ export type CommandResult =
   | { type: "blank" };
 
 export type CommandArgument = {
+  name: string;
+  description: string;
+  // Concrete tokens offered by Tab completion. Labels like "+N" stay display-only.
+  values?: string[];
+};
+
+export type CommandFlag = {
   name: string;
   description: string;
 };
@@ -36,6 +44,7 @@ export type CommandDefinition = {
   description: string;
   usageArgs?: string;
   arguments?: CommandArgument[];
+  flags?: CommandFlag[];
   examples?: string[];
   acceptsArgs?: boolean;
   // Hidden commands stay runnable but are omitted from help, including -h.

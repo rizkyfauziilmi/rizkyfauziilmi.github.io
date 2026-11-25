@@ -85,9 +85,7 @@ function InputGroupAddon({
         }
         (
           e.currentTarget.parentElement?.querySelector("input, textarea") as
-            | HTMLInputElement
-            | HTMLTextAreaElement
-            | null
+            HTMLInputElement | HTMLTextAreaElement | null
         )?.focus();
       }}
       {...props}
@@ -179,7 +177,7 @@ function InputGroupInput({
 }
 
 const inputGroupTextareaVariants = cva(
-  "flex-1 min-w-0 resize-none rounded-none border-0 bg-transparent shadow-none ring-0 disabled:bg-transparent dark:bg-transparent dark:disabled:bg-transparent",
+  "min-w-0 flex-1 resize-none rounded-none border-0 bg-transparent shadow-none ring-0 disabled:bg-transparent dark:bg-transparent dark:disabled:bg-transparent",
   {
     variants: {
       variant: {

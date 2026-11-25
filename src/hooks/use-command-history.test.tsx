@@ -2,7 +2,10 @@ import { act, render } from "@testing-library/react";
 import { useEffect, useRef } from "react";
 import { describe, expect, it } from "vitest";
 
-import { useCommandHistory, type HistoryDirection } from "./use-command-history";
+import {
+  useCommandHistory,
+  type HistoryDirection,
+} from "./use-command-history";
 
 type Api = ReturnType<typeof useCommandHistory>;
 
@@ -41,6 +44,8 @@ function setup(commands: string[]) {
   return {
     textarea: view.container.querySelector("textarea") as HTMLTextAreaElement,
     changeValue: (value: string) => act(() => api().changeValue(value)),
+    replaceValue: (value: string, caret: number) =>
+      act(() => api().replaceValue(value, caret)),
     navigate: (direction: HistoryDirection) => {
       let handled = false;
       act(() => {
@@ -109,6 +114,16 @@ describe("useCommandHistory", () => {
 
     expect(textarea.value).toBe("theme dark");
     expect(textarea.selectionStart).toBe(textarea.value.length);
+  });
+
+  it("moves the caret to an explicit position after a replacement", () => {
+    const { textarea, replaceValue, getValue } = setup([]);
+
+    replaceValue("theme ", 6);
+
+    expect(getValue()).toBe("theme ");
+    expect(textarea.selectionStart).toBe(6);
+    expect(textarea.selectionEnd).toBe(6);
   });
 
   it("resets value and draft", () => {

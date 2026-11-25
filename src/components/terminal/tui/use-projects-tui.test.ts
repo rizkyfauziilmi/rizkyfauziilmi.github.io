@@ -2,7 +2,11 @@ import { act, renderHook } from "@testing-library/react";
 import { fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { createInitialTuiState, projectsTuiReducer, useProjectsTui } from "./use-projects-tui";
+import {
+  createInitialTuiState,
+  projectsTuiReducer,
+  useProjectsTui,
+} from "./use-projects-tui";
 
 const PROJECTS = Array.from({ length: 4 }, (_, index) => ({
   id: `project-${index}`,
@@ -25,9 +29,9 @@ describe("projectsTuiReducer", () => {
 
   it("ignores movement when there are no projects", () => {
     const state = createInitialTuiState();
-    expect(projectsTuiReducer(state, { type: "move", delta: 1, length: 0 })).toBe(
-      state,
-    );
+    expect(
+      projectsTuiReducer(state, { type: "move", delta: 1, length: 0 }),
+    ).toBe(state);
   });
 
   it("opens and closes the full-screen detail view", () => {

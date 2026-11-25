@@ -24,7 +24,7 @@ export function CaretMirror({
         className,
         // Invisible still participates in layout, so the marker can be measured.
         // Wrapping must match the textarea or the marker lands on the wrong line.
-        "invisible pointer-events-none absolute inset-0 whitespace-pre-wrap",
+        "pointer-events-none invisible absolute inset-0 whitespace-pre-wrap",
       )}
       style={{ textIndent: indent }}
     >
