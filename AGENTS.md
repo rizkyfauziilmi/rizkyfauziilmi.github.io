@@ -12,8 +12,10 @@
 
 ## Documentation
 
-- Keep `README.md` accurate and up to date whenever commands, flags, scripts, CI, tooling, or project structure change. Update it in the same change instead of waiting to be asked.
-- Verify README claims against the actual code, `package.json`, and workflows; never document behavior that does not exist.
+- Keep `README.md` accurate and up to date whenever commands, flags, scripts, tooling, or project structure change. Update it in the same change instead of waiting to be asked.
+- Keep `README.md` short and user-facing: setup, scripts, commands and shortcuts, and stack. Do not add internal architecture trees, implementation details, type inventories, exhaustive flag catalogs, long tutorials, or CI/deployment sections; those belong in code, tests, workflows, or AGENTS.md.
+- Do not expand `README.md` beyond that scope unless explicitly asked. Tighten or remove stale sections instead of accumulating detail.
+- Verify README claims against the actual code and `package.json`; never document behavior that does not exist.
 
 ## Commits
 
