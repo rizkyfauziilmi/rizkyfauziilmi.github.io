@@ -75,7 +75,11 @@ Command results are plain data (`output`, `component`, `theme`, `reboot`, `shutd
 
 ## CI and deployment
 
-`.github/workflows/main.yml` deploys to GitHub Pages on every push to `main`. It uses pnpm 12 and Node 22, and runs **Lint → Test → Build** before uploading the artifact.
+`.github/workflows/main.yml` deploys to GitHub Pages on every push to `main` and via manual `workflow_dispatch`. It uses pnpm 12 and Node 22.
+
+The `build` job runs **format → lint → test → build**, then uploads `dist/` as a Pages artifact named `github-pages-<run_id>-<run_attempt>`. The unique name prevents duplicate-artifact errors when a workflow is re-run.
+
+The `deploy` job depends on `build`, waits until the artifact is visible through the Actions API, then deploys it with `actions/deploy-pages@v4`. The wait avoids a race where an artifact lookup immediately after upload can return no artifacts.
 
 ## Stack
 
