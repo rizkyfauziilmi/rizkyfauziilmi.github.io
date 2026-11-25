@@ -71,9 +71,7 @@ describe("BlockCaretInput", () => {
     expect(textarea.value).toBe("help");
     expect(textarea.className).toContain("text-transparent");
 
-    const overlay = container.querySelector(
-      "[data-command-highlight-overlay]",
-    );
+    const overlay = container.querySelector("[data-command-highlight-overlay]");
     expect(overlay).not.toBeNull();
     expect(overlay?.getAttribute("aria-hidden")).toBe("true");
     expect(

@@ -28,13 +28,13 @@ describe("HelpOutput", () => {
 
   it("sizes the command column from the registry labels", () => {
     const { container } = render(<HelpOutput />);
-    const visibleLabels = COMMAND_DEFINITIONS.filter((command) => !command.hidden)
+    const visibleLabels = COMMAND_DEFINITIONS.filter(
+      (command) => !command.hidden,
+    )
       .map(getCommandLabel)
       .map((label) => label.length);
     const expectedWidth = Math.max(10, ...visibleLabels) + 2;
-    const rows = container.querySelectorAll(
-      '[style*="grid-template-columns"]',
-    );
+    const rows = container.querySelectorAll('[style*="grid-template-columns"]');
 
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
@@ -43,9 +43,9 @@ describe("HelpOutput", () => {
       expect(columns).toContain(`${expectedWidth}ch`);
       expect(columns).toContain("1fr");
     }
-    expect(
-      screen.getByText("shutdown <now|+N|HH:MM|-c>").className,
-    ).toContain("break-words");
+    expect(screen.getByText("shutdown <now|+N|HH:MM|-c>").className).toContain(
+      "break-words",
+    );
   });
 
   it("indents every section body under its heading", () => {

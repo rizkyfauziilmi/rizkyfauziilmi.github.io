@@ -87,7 +87,9 @@ function setup(value: string, completionCatalog: CompletionCatalog) {
     if (!apiRef.current) throw new Error("hook result is not ready");
     return apiRef.current;
   };
-  const textarea = view.container.querySelector("textarea") as HTMLTextAreaElement;
+  const textarea = view.container.querySelector(
+    "textarea",
+  ) as HTMLTextAreaElement;
   const complete = (backward?: boolean) =>
     act(() => {
       api().complete(backward);
@@ -146,8 +148,13 @@ describe("useCommandCompletion", () => {
   });
 
   it("cycles ambiguous matches from the original text and wraps", () => {
-    const { textarea, complete, replaceValue, getSuggestions, getActiveSuggestion } =
-      setup("s", catalog(["shutdown", "sudo"]));
+    const {
+      textarea,
+      complete,
+      replaceValue,
+      getSuggestions,
+      getActiveSuggestion,
+    } = setup("s", catalog(["shutdown", "sudo"]));
     textarea.setSelectionRange(1, 1);
 
     complete();

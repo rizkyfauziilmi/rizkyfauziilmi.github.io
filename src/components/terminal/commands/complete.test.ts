@@ -44,9 +44,11 @@ const theme = command({
 
 describe("completeCommand", () => {
   it("completes a unique command prefix and leaves one space", () => {
-    expect(
-      completeCommand("the", 3, catalog(["theme", "shutdown"])),
-    ).toEqual({ value: "theme ", caret: 6, suggestions: [] });
+    expect(completeCommand("the", 3, catalog(["theme", "shutdown"]))).toEqual({
+      value: "theme ",
+      caret: 6,
+      suggestions: [],
+    });
   });
 
   it("keeps existing arguments while replacing the command", () => {
@@ -66,9 +68,7 @@ describe("completeCommand", () => {
   });
 
   it("lists command candidates when the common prefix cannot grow", () => {
-    expect(
-      completeCommand("s", 1, catalog(["sudo", "shutdown"])),
-    ).toEqual({
+    expect(completeCommand("s", 1, catalog(["sudo", "shutdown"]))).toEqual({
       value: "s",
       caret: 1,
       suggestions: ["shutdown", "sudo"],
@@ -84,15 +84,19 @@ describe("completeCommand", () => {
   });
 
   it("does nothing for a quoted command", () => {
-    expect(
-      completeCommand('"the"', 5, catalog(["theme"])),
-    ).toEqual({ value: '"the"', caret: 5, suggestions: [] });
+    expect(completeCommand('"the"', 5, catalog(["theme"]))).toEqual({
+      value: '"the"',
+      caret: 5,
+      suggestions: [],
+    });
   });
 
   it("does nothing when no command matches", () => {
-    expect(
-      completeCommand("xyz", 3, catalog(["theme", "shutdown"])),
-    ).toEqual({ value: "xyz", caret: 3, suggestions: [] });
+    expect(completeCommand("xyz", 3, catalog(["theme", "shutdown"]))).toEqual({
+      value: "xyz",
+      caret: 3,
+      suggestions: [],
+    });
   });
 
   it("includes hidden runnable commands from the registry", () => {

@@ -148,7 +148,10 @@ describe("runCommand", () => {
   });
 
   it("runs neofetch and its fastfetch alias with the supplied context", () => {
-    const context = { ...createDefaultCommandContext(), theme: "light" as const };
+    const context = {
+      ...createDefaultCommandContext(),
+      theme: "light" as const,
+    };
     const neofetch = runCommand("neofetch", context);
     const fastfetch = runCommand("fastfetch", context);
 

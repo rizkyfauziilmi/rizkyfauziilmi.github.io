@@ -69,9 +69,7 @@ describe("sessionReducer", () => {
     });
 
     expect(state.activeTui).toBe("projects");
-    expect(state.entries).toEqual([
-      { id: 0, kind: "input", text: "projects" },
-    ]);
+    expect(state.entries).toEqual([{ id: 0, kind: "input", text: "projects" }]);
     expect(state.nextEntryId).toBe(1);
 
     const ignored = sessionReducer(state, {

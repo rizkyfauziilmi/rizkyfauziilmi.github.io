@@ -2,7 +2,10 @@ import { act, render } from "@testing-library/react";
 import { useEffect, useRef } from "react";
 import { describe, expect, it } from "vitest";
 
-import { useCommandHistory, type HistoryDirection } from "./use-command-history";
+import {
+  useCommandHistory,
+  type HistoryDirection,
+} from "./use-command-history";
 
 type Api = ReturnType<typeof useCommandHistory>;
 

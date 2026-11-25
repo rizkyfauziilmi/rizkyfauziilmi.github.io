@@ -10,11 +10,7 @@ import { InputGroup } from "@/components/ui/input-group";
 import { useTerminalShell } from "@/hooks";
 import { PROMPT } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
-import {
-  CommandSuggestions,
-  HaltedScreen,
-  TerminalEntryView,
-} from "./output";
+import { CommandSuggestions, HaltedScreen, TerminalEntryView } from "./output";
 import { ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";

@@ -20,12 +20,7 @@ describe("tokenize", () => {
   });
 
   it("supports mixed quoting", () => {
-    expect(tokenize(`echo "a b" 'c d' e`)).toEqual([
-      "echo",
-      "a b",
-      "c d",
-      "e",
-    ]);
+    expect(tokenize(`echo "a b" 'c d' e`)).toEqual(["echo", "a b", "c d", "e"]);
   });
 
   it("treats an unclosed quote as the rest of the line", () => {

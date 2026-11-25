@@ -14,7 +14,10 @@ export type CommandCompletion = {
 export type CompletionCatalog = {
   commandNames: ReadonlySet<string>;
   commands: ReadonlyMap<string, CommandDefinition>;
-  flagsFor: (command: CommandDefinition, isFirstArgument: boolean) => readonly string[];
+  flagsFor: (
+    command: CommandDefinition,
+    isFirstArgument: boolean,
+  ) => readonly string[];
 };
 
 export type CompletionSpan = Pick<TokenSpan, "start" | "end">;
@@ -57,7 +60,10 @@ function findActiveToken(tokens: TokenSpan[], caret: number) {
 }
 
 /** Token boundaries of the word completion applies to, in the source input. */
-export function getCompletionSpan(input: string, caret: number): CompletionSpan {
+export function getCompletionSpan(
+  input: string,
+  caret: number,
+): CompletionSpan {
   const safeCaret = clampCaret(input, caret);
   const tokens = tokenizeWithSpans(input);
   const [first] = tokens;
@@ -77,8 +83,7 @@ export function applyCandidate(
   candidate: string,
 ) {
   const rest = input.slice(span.end);
-  const tail =
-    rest.length === 0 || /^\s/.test(rest) ? rest || " " : ` ${rest}`;
+  const tail = rest.length === 0 || /^\s/.test(rest) ? rest || " " : ` ${rest}`;
 
   return {
     value: `${input.slice(0, span.start)}${candidate}${tail}`,

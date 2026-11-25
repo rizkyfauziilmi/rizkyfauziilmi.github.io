@@ -33,7 +33,10 @@ export function createInitialSession(): SessionState {
   };
 }
 
-export function buildOutputEntry(id: number, result: CommandResult): TerminalEntry {
+export function buildOutputEntry(
+  id: number,
+  result: CommandResult,
+): TerminalEntry {
   switch (result.type) {
     case "component":
       return { id, kind: "output", text: "", view: result.view };
@@ -77,10 +80,16 @@ export function sessionReducer(
 
   const { command, result } = action;
   // Record every non-blank submission, including errors and "clear", like a real shell.
-  const commands = command.trim() ? [...state.commands, command] : state.commands;
+  const commands = command.trim()
+    ? [...state.commands, command]
+    : state.commands;
   // `clear` renders no entry; `blank` and `tui` render only the input line.
   const consumedIds =
-    result.type === "clear" ? 0 : result.type === "blank" || result.type === "tui" ? 1 : 2;
+    result.type === "clear"
+      ? 0
+      : result.type === "blank" || result.type === "tui"
+        ? 1
+        : 2;
   const nextEntryId = state.nextEntryId + consumedIds;
   let entries = state.entries;
   let pendingAction = state.pendingAction;
@@ -129,7 +138,11 @@ export function sessionReducer(
       entryResult.type === "blank" || entryResult.type === "tui";
     entries = hidesOutput
       ? [...entries, inputEntry]
-      : [...entries, inputEntry, buildOutputEntry(state.nextEntryId + 1, entryResult)];
+      : [
+          ...entries,
+          inputEntry,
+          buildOutputEntry(state.nextEntryId + 1, entryResult),
+        ];
   }
 
   return { ...state, entries, commands, pendingAction, activeTui, nextEntryId };

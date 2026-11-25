@@ -46,7 +46,7 @@ export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
             src={project.image}
             alt={`${project.title} preview`}
             data-tui-interactive=""
-            className="aspect-video rounded-none border object-cover size-1/2"
+            className="aspect-video size-1/2 rounded-none border object-cover"
           />
           <div>
             <h2 className="font-mono text-lg text-foreground">
@@ -68,13 +68,7 @@ export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
           </div>
           {project.url && (
             <Button
-              render={
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noreferrer"
-                />
-              }
+              render={<a href={project.url} target="_blank" rel="noreferrer" />}
               variant="tui-link"
               size="tui-link"
               nativeButton={false}

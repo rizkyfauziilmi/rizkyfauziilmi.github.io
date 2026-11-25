@@ -1,7 +1,4 @@
-import {
-  useCallback,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from "react";
+import { useCallback, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import type { HistoryDirection } from "@/hooks";
 

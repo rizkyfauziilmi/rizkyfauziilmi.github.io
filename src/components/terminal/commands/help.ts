@@ -9,8 +9,7 @@ export type HelpCommand = {
 };
 
 export type HelpTipPart =
-  | { type: "key"; value: string }
-  | { type: "text"; value: string };
+  { type: "key"; value: string } | { type: "text"; value: string };
 
 export type HelpModel = {
   version: string;

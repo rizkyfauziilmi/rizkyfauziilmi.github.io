@@ -4,8 +4,7 @@ import { buildHelpModel, type HelpTipPart } from "../commands/help";
 import { COMMAND_DEFINITIONS } from "../commands/registry";
 
 type TipGroup =
-  | { type: "keys"; values: string[] }
-  | { type: "text"; value: string };
+  { type: "keys"; values: string[] } | { type: "text"; value: string };
 
 function groupTipParts(parts: HelpTipPart[]): TipGroup[] {
   return parts.reduce<TipGroup[]>((groups, part) => {
@@ -66,15 +65,19 @@ export function HelpOutput() {
         <h3 className="font-mono text-muted-foreground">Commands:</h3>
         <div className="grid gap-1 pl-4">
           {help.commands.map((command) => (
-            <div key={command.name} className="grid gap-2" style={commandColumns}>
-              <span className="min-w-0 break-words font-mono">
+            <div
+              key={command.name}
+              className="grid gap-2"
+              style={commandColumns}
+            >
+              <span className="min-w-0 font-mono break-words">
                 {command.label}
               </span>
               <span>{command.description}</span>
             </div>
           ))}
           <div className="grid gap-2" style={commandColumns}>
-            <span className="min-w-0 break-words font-mono">
+            <span className="min-w-0 font-mono break-words">
               &lt;command&gt; -h
             </span>
             <span>Print help text for a command</span>

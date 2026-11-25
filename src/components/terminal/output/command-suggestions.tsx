@@ -29,7 +29,8 @@ export function CommandSuggestions({
             key={name}
             data-active={index === activeIndex ? "" : undefined}
             className={cn(
-              index === activeIndex && "rounded-sm bg-muted px-1 text-foreground",
+              index === activeIndex &&
+                "rounded-sm bg-muted px-1 text-foreground",
             )}
           >
             {name}

@@ -3,5 +3,5 @@ interface AppTitleProps {
 }
 
 export function AppTitle({ title }: AppTitleProps) {
-  return <h4 className="font-bold text-sm opacity-90">{title}</h4>;
+  return <h4 className="text-sm font-bold opacity-90">{title}</h4>;
 }

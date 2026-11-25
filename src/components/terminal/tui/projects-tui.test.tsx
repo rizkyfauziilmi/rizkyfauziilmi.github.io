@@ -39,9 +39,7 @@ describe("ProjectDetail", () => {
     const onBack = vi.fn();
     render(<ProjectDetail project={project} onBack={onBack} />);
 
-    expect(
-      screen.getByRole("heading", { name: "Demo Project" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Demo Project" })).toBeTruthy();
     expect(screen.getByText("A sample description.")).toBeTruthy();
     expect(screen.getByText("React")).toBeTruthy();
     expect(

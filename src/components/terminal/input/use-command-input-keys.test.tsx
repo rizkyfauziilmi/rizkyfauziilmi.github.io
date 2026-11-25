@@ -11,8 +11,7 @@ function setup(overrides: Partial<Options> = {}) {
   const onHelp = overrides.onHelp ?? vi.fn();
   const onHistoryNavigate = overrides.onHistoryNavigate ?? vi.fn(() => true);
   const onSubmit = overrides.onSubmit ?? vi.fn();
-  const onAcceptCompletion =
-    overrides.onAcceptCompletion ?? vi.fn(() => false);
+  const onAcceptCompletion = overrides.onAcceptCompletion ?? vi.fn(() => false);
   const onCancelCompletion = overrides.onCancelCompletion ?? vi.fn();
   const hasCompletionSelection = overrides.hasCompletionSelection ?? false;
   const hook = renderHook(() =>

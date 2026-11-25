@@ -5,13 +5,18 @@ import {
   runCommand,
   type CommandContext,
 } from "@/components/terminal/commands";
-import { createInitialSession, sessionReducer } from "@/components/terminal/session";
+import {
+  createInitialSession,
+  sessionReducer,
+} from "@/components/terminal/session";
 
 const REBOOT_DELAY_MS = 1_000;
 const CLOSE_FALLBACK_MS = 250;
 
 function getPlatform() {
-  const nav = navigator as Navigator & { userAgentData?: { platform?: string } };
+  const nav = navigator as Navigator & {
+    userAgentData?: { platform?: string };
+  };
   return nav.userAgentData?.platform || navigator.platform || "Unknown";
 }
 
@@ -30,10 +35,7 @@ export function useTerminalHistory() {
     if (!action) return;
 
     if (action.kind === "reboot") {
-      const timer = setTimeout(
-        () => window.location.reload(),
-        REBOOT_DELAY_MS,
-      );
+      const timer = setTimeout(() => window.location.reload(), REBOOT_DELAY_MS);
       return () => clearTimeout(timer);
     }
 
@@ -47,13 +49,17 @@ export function useTerminalHistory() {
 
     // Browsers ignore close() for tabs they did not open, so keep a fallback.
     window.close();
-    const timer = setTimeout(() => dispatch({ type: "halt" }), CLOSE_FALLBACK_MS);
+    const timer = setTimeout(
+      () => dispatch({ type: "halt" }),
+      CLOSE_FALLBACK_MS,
+    );
     return () => clearTimeout(timer);
   }, [session.pendingAction]);
 
   const submit = useCallback(
     (command: string): boolean => {
-      if (session.phase === "halted" || session.activeTui !== null) return false;
+      if (session.phase === "halted" || session.activeTui !== null)
+        return false;
 
       const context: CommandContext = {
         theme,

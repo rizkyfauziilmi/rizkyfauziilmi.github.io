@@ -2,7 +2,10 @@ import { useCallback, type RefObject } from "react";
 
 import { COMMAND_CATALOG } from "@/components/terminal/commands";
 import { useCommandCompletion } from "./use-command-completion";
-import { useCommandHistory, type HistoryDirection } from "./use-command-history";
+import {
+  useCommandHistory,
+  type HistoryDirection,
+} from "./use-command-history";
 import { useTerminalHistory } from "./use-terminal-history";
 
 interface UseTerminalShellOptions {
@@ -18,15 +21,8 @@ export function useTerminalShell({
   inputRef,
   focusInput,
 }: UseTerminalShellOptions) {
-  const {
-    entries,
-    commands,
-    submit,
-    isHalted,
-    activeTui,
-    exitTui,
-    powerOn,
-  } = useTerminalHistory();
+  const { entries, commands, submit, isHalted, activeTui, exitTui, powerOn } =
+    useTerminalHistory();
   const {
     value,
     changeValue: setHistoryValue,

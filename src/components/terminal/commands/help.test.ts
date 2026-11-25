@@ -37,10 +37,7 @@ describe("buildHelpModel", () => {
       command({ name: "sudo", description: "Secret", hidden: true }),
     ]);
 
-    expect(model.commands.map((item) => item.name)).toEqual([
-      "about",
-      "theme",
-    ]);
+    expect(model.commands.map((item) => item.name)).toEqual(["about", "theme"]);
     expect(model.commands[1].label).toBe("theme <dark|light|system>");
     expect(model.commands[1].description).toBe("Set theme");
     expect(model.commands.some((item) => item.name === "sudo")).toBe(false);

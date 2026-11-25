@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 
 type TerminalIconProps = ComponentProps<"svg">;
 
-export function TerminalIcon({ className, style, ...props }: TerminalIconProps) {
+export function TerminalIcon({
+  className,
+  style,
+  ...props
+}: TerminalIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
