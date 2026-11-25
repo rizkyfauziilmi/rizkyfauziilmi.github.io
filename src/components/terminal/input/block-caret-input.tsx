@@ -1,8 +1,4 @@
-import {
-  useCallback,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type RefObject,
-} from "react";
+import type { RefObject } from "react";
 import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
@@ -11,6 +7,7 @@ import { INPUT_CLASSNAME, TERMINAL_INDENT } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
 import { CommandHighlight } from "./command-highlight";
+import { useCommandInputKeys } from "./use-command-input-keys";
 
 interface BlockCaretInputProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
@@ -20,8 +17,6 @@ interface BlockCaretInputProps {
   onSubmit: () => void;
   onHelp: () => void;
   placeholder?: string;
-  className?: string;
-  caretClassName?: string;
 }
 
 export function BlockCaretInput({
@@ -32,48 +27,17 @@ export function BlockCaretInput({
   onSubmit,
   onHelp,
   placeholder,
-  className,
-  caretClassName,
 }: BlockCaretInputProps) {
   const { mirrorRef, prefixRef, markerRef, caretStyle, showCaret } =
     useBlockCaret(inputRef, value);
-
-  const handleKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-      // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        (event.key === "?" || event.key === "/")
-      ) {
-        event.preventDefault();
-        onHelp();
-        return;
-      }
-
-      // Only swallow the key when history actually handled it; otherwise native
-      // caret navigation stays intact. Modified arrows are left alone too.
-      if (
-        (event.key === "ArrowUp" || event.key === "ArrowDown") &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey &&
-        !event.shiftKey
-      ) {
-        const direction: HistoryDirection =
-          event.key === "ArrowUp" ? "previous" : "next";
-        if (onHistoryNavigate(direction)) event.preventDefault();
-        return;
-      }
-
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      onSubmit();
-    },
-    [onHelp, onHistoryNavigate, onSubmit],
-  );
+  const handleKeyDown = useCommandInputKeys({
+    onHelp,
+    onHistoryNavigate,
+    onSubmit,
+  });
 
   return (
-    <div className={cn("relative min-w-0 flex-1", className)}>
+    <div className="relative min-w-0 flex-1">
       <InputGroupTextarea
         ref={inputRef}
         variant="none-style"
@@ -104,9 +68,7 @@ export function BlockCaretInput({
         className={INPUT_CLASSNAME}
         indent={TERMINAL_INDENT}
       />
-      {showCaret && caretStyle && (
-        <BlockCaret style={caretStyle} className={caretClassName} />
-      )}
+      {showCaret && caretStyle && <BlockCaret style={caretStyle} />}
     </div>
   );
 }
