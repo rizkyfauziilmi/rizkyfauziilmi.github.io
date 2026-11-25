@@ -2,13 +2,16 @@ import { createDefaultCommandContext } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
-import type {
-  CommandContext,
-  CommandDefinition,
-  CommandResult,
-} from "./types";
+import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
 export { THEME_MODES } from "./types";
+
+// Every runnable command, including hidden eggs and aliases: highlighting must
+// agree with runCommand about what the shell recognises.
+export const KNOWN_COMMAND_NAMES: ReadonlySet<string> = new Set(
+  COMMAND_DEFINITIONS.map((command) => command.name),
+);
+
 export type {
   CommandContext,
   CommandResult,

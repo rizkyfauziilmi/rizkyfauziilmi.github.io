@@ -10,6 +10,7 @@ import { useBlockCaret, type HistoryDirection } from "@/hooks";
 import { INPUT_CLASSNAME } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
+import { CommandHighlight } from "./command-highlight";
 
 interface BlockCaretInputProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
@@ -80,11 +81,24 @@ export function BlockCaretInput({
         variant="none-style"
         value={value}
         placeholder={placeholder}
-        className={INPUT_CLASSNAME}
+        className={cn(INPUT_CLASSNAME, "text-transparent")}
         style={{ textIndent: indent }}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
       />
+      {/* Visible tokens sit above the transparent textarea; the invisible
+          CaretMirror below still owns caret measurement. */}
+      <div
+        aria-hidden
+        data-command-highlight-overlay=""
+        className={cn(
+          INPUT_CLASSNAME,
+          "pointer-events-none absolute inset-0 whitespace-pre-wrap",
+        )}
+        style={{ textIndent: indent }}
+      >
+        <CommandHighlight value={value} />
+      </div>
       <CaretMirror
         mirrorRef={mirrorRef}
         prefixRef={prefixRef}

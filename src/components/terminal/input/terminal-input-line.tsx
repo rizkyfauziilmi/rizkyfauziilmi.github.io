@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 import { LINE_CLASSNAME } from "../constants";
+import { CommandHighlight } from "./command-highlight";
 import { TerminalPrompt } from "./terminal-prompt";
 
 interface TerminalInputLineProps {
@@ -21,7 +22,7 @@ export function TerminalInputLine({
         className={cn(LINE_CLASSNAME, "min-w-0")}
         style={{ textIndent: indent }}
       >
-        {text}
+        <CommandHighlight value={text} />
       </div>
     </div>
   );
