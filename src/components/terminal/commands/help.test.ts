@@ -56,8 +56,9 @@ describe("buildHelpModel", () => {
 
     expect(flattened).toContain("Tab");
     expect(flattened).toContain(
-      "completes a command or lists matches when ambiguous",
+      "completes commands, flags, or argument values",
     );
+    expect(flattened).toContain("lists matches when ambiguous");
     expect(flattened).toContain("classic Unix troublemakers");
   });
 });
@@ -80,6 +81,19 @@ describe("buildCommandHelp", () => {
     expect(output).toContain("Examples:");
     expect(output).toContain("  shutdown now");
     expect(output).toContain("Flags:");
+  });
+
+  it("lists declared flags alongside the help flags", () => {
+    const output = buildCommandHelp(
+      command({
+        name: "rm",
+        flags: [{ name: "-r", description: "Remove recursively" }],
+      }),
+    );
+
+    expect(output).toContain("-r");
+    expect(output).toContain("Remove recursively");
+    expect(output).toContain("--help");
   });
 
   it("omits optional blocks when they are not defined", () => {

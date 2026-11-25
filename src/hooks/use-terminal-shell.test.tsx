@@ -62,6 +62,15 @@ describe("useTerminalShell", () => {
     expect(result.current.suggestions).toEqual([]);
   });
 
+  it("completes an argument value from the registry", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("theme d"));
+    act(() => result.current.complete());
+
+    expect(result.current.value).toBe("theme dark ");
+  });
+
   it("exposes ambiguous completions and clears them on submit", () => {
     const { result } = setup();
 

@@ -1,11 +1,14 @@
 import { useCallback, useState, type RefObject } from "react";
 
-import { completeCommand } from "@/components/terminal/commands";
+import {
+  completeCommand,
+  type CompletionCatalog,
+} from "@/components/terminal/commands";
 
 interface UseCommandCompletionOptions {
   value: string;
   inputRef: RefObject<HTMLTextAreaElement | null>;
-  candidates: ReadonlySet<string>;
+  catalog: CompletionCatalog;
   replaceValue: (value: string, caret: number) => void;
 }
 
@@ -13,7 +16,7 @@ interface UseCommandCompletionOptions {
 export function useCommandCompletion({
   value,
   inputRef,
-  candidates,
+  catalog,
   replaceValue,
 }: UseCommandCompletionOptions) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -22,11 +25,11 @@ export function useCommandCompletion({
 
   const complete = useCallback(() => {
     const caret = inputRef.current?.selectionStart ?? value.length;
-    const result = completeCommand(value, caret, candidates);
+    const result = completeCommand(value, caret, catalog);
 
     replaceValue(result.value, result.caret);
     setSuggestions(result.suggestions);
-  }, [value, inputRef, candidates, replaceValue]);
+  }, [value, inputRef, catalog, replaceValue]);
 
   return { complete, suggestions, clearSuggestions };
 }

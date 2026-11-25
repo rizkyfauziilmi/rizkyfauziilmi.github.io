@@ -15,13 +15,18 @@ const SHUTDOWN_COMMAND: CommandDefinition = {
     {
       name: "now",
       description: "Power off immediately (only format that can close the tab)",
+      values: ["now"],
     },
     { name: "+N", description: "Minutes from now, e.g. +5 (+0 = now)" },
     {
       name: "HH:MM",
       description: "24-hour local time, e.g. 23:30 (tomorrow if past)",
     },
-    { name: "-c", description: "Cancel a scheduled shutdown" },
+    {
+      name: "-c",
+      description: "Cancel a scheduled shutdown",
+      values: ["-c"],
+    },
   ],
   examples: ["shutdown now", "shutdown +5", "shutdown 23:30", "shutdown -c"],
   acceptsArgs: true,
@@ -113,9 +118,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Set the color theme",
     usageArgs: "<dark|light|system>",
     arguments: [
-      { name: "dark", description: "Use the dark theme" },
-      { name: "light", description: "Use the light theme" },
-      { name: "system", description: "Follow the system preference" },
+      { name: "dark", description: "Use the dark theme", values: ["dark"] },
+      { name: "light", description: "Use the light theme", values: ["light"] },
+      {
+        name: "system",
+        description: "Follow the system preference",
+        values: ["system"],
+      },
     ],
     acceptsArgs: true,
     run: (args): CommandResult => {
@@ -151,6 +160,10 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     name: "rm",
     description: "Remove files or directories",
     hidden: true,
+    flags: [
+      { name: "-r", description: "Remove directories recursively" },
+      { name: "-R", description: "Alias for -r" },
+    ],
     run: (args) => {
       // Ignore flags when finding the path, but keep them to tell `rm /` from `rm -r /`.
       const flags = args.filter((arg) => arg.startsWith("-"));

@@ -1,3 +1,4 @@
+import { getCommandFlags } from "./flags";
 import type { CommandDefinition } from "./types";
 
 export type HelpCommand = {
@@ -21,7 +22,12 @@ const key = (value: string): HelpTipPart => ({ type: "key", value });
 const text = (value: string): HelpTipPart => ({ type: "text", value });
 
 export const HELP_TIPS: HelpTipPart[][] = [
-  [key("Tab"), text(" completes a command or lists matches when ambiguous")],
+  [
+    key("Tab"),
+    text(
+      " completes commands, flags, or argument values; lists matches when ambiguous",
+    ),
+  ],
   [key("Ctrl"), key("?"), text(" shows this menu")],
   [key("↑"), key("↓"), text(" browse commands from your history")],
   [
@@ -72,10 +78,14 @@ ${command.examples.map((example) => `  ${example}`).join("\n")}
 `
     : "";
 
+  const flagsBlock = `
+Flags:
+${getCommandFlags(command)
+  .map(({ name, description }) => `  ${name.padEnd(9)}${description}`)
+  .join("\n")}`;
+
   return `${command.description}
 
 Usage: ${getCommandLabel(command)}
-${argumentsBlock}${examplesBlock}
-Flags:
-  -h, --help   Display this help text`;
+${argumentsBlock}${examplesBlock}${flagsBlock}`;
 }

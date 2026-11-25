@@ -1,6 +1,6 @@
 import { useCallback, type RefObject } from "react";
 
-import { KNOWN_COMMAND_NAMES } from "@/components/terminal/commands";
+import { COMMAND_CATALOG } from "@/components/terminal/commands";
 import { useCommandCompletion } from "./use-command-completion";
 import { useCommandHistory, type HistoryDirection } from "./use-command-history";
 import { useTerminalHistory } from "./use-terminal-history";
@@ -37,7 +37,7 @@ export function useTerminalShell({
   const { complete, suggestions, clearSuggestions } = useCommandCompletion({
     value,
     inputRef,
-    candidates: KNOWN_COMMAND_NAMES,
+    catalog: COMMAND_CATALOG,
     replaceValue,
   });
 

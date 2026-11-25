@@ -45,8 +45,9 @@ describe("HelpOutput", () => {
     render(<HelpOutput />);
 
     expect(
-      screen.getByText(/completes a command or lists matches when ambiguous/),
+      screen.getByText(/completes commands, flags, or argument values/),
     ).toBeTruthy();
+    expect(screen.getByText(/lists matches when ambiguous/)).toBeTruthy();
   });
 
   it("routes help entries through the view registry", () => {

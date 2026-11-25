@@ -20,6 +20,13 @@ export type CommandResult =
 export type CommandArgument = {
   name: string;
   description: string;
+  // Concrete tokens offered by Tab completion. Labels like "+N" stay display-only.
+  values?: string[];
+};
+
+export type CommandFlag = {
+  name: string;
+  description: string;
 };
 
 // Snapshot supplied by the shell so commands stay pure and testable.
@@ -37,6 +44,7 @@ export type CommandDefinition = {
   description: string;
   usageArgs?: string;
   arguments?: CommandArgument[];
+  flags?: CommandFlag[];
   examples?: string[];
   acceptsArgs?: boolean;
   // Hidden commands stay runnable but are omitted from help, including -h.

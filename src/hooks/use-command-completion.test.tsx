@@ -2,23 +2,52 @@ import { useEffect, useRef } from "react";
 import { act, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import type {
+  CommandDefinition,
+  CompletionCatalog,
+} from "@/components/terminal/commands";
 import { useCommandCompletion } from "./use-command-completion";
 
 type Api = ReturnType<typeof useCommandCompletion>;
 
+const command = (
+  overrides: Partial<CommandDefinition> & Pick<CommandDefinition, "name">,
+): CommandDefinition => ({
+  description: "A command",
+  run: () => ({ type: "blank" }),
+  ...overrides,
+});
+
+function catalog(
+  names: string[],
+  commands: CommandDefinition[] = [],
+): CompletionCatalog {
+  return {
+    commandNames: new Set(names),
+    commands: new Map(commands.map((item) => [item.name, item])),
+    flagsFor: (item, isFirstArgument) =>
+      isFirstArgument && item.name !== "echo" ? ["-h", "--help"] : [],
+  };
+}
+
 function Harness({
   value,
-  candidates,
+  catalog: completionCatalog,
   apiRef,
   replaceValue,
 }: {
   value: string;
-  candidates: ReadonlySet<string>;
+  catalog: CompletionCatalog;
   apiRef: { current: Api | null };
   replaceValue: (value: string, caret: number) => void;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const api = useCommandCompletion({ value, inputRef, candidates, replaceValue });
+  const api = useCommandCompletion({
+    value,
+    inputRef,
+    catalog: completionCatalog,
+    replaceValue,
+  });
 
   useEffect(() => {
     apiRef.current = api;
@@ -27,13 +56,13 @@ function Harness({
   return <textarea ref={inputRef} value={value} readOnly />;
 }
 
-function setup(value: string, candidates: string[]) {
+function setup(value: string, completionCatalog: CompletionCatalog) {
   const apiRef: { current: Api | null } = { current: null };
   const replaceValue = vi.fn();
   const view = render(
     <Harness
       value={value}
-      candidates={new Set(candidates)}
+      catalog={completionCatalog}
       apiRef={apiRef}
       replaceValue={replaceValue}
     />,
@@ -55,10 +84,10 @@ function setup(value: string, candidates: string[]) {
 
 describe("useCommandCompletion", () => {
   it("uses the textarea caret and replaces the value with the completion", () => {
-    const { textarea, complete, replaceValue } = setup("the", [
-      "theme",
-      "shutdown",
-    ]);
+    const { textarea, complete, replaceValue } = setup(
+      "the",
+      catalog(["theme", "shutdown"]),
+    );
     textarea.setSelectionRange(3, 3);
 
     complete();
@@ -69,7 +98,7 @@ describe("useCommandCompletion", () => {
   it("exposes ambiguous suggestions and clears them on demand", () => {
     const { textarea, complete, clearSuggestions, getSuggestions } = setup(
       "s",
-      ["shutdown", "sudo"],
+      catalog(["shutdown", "sudo"]),
     );
     textarea.setSelectionRange(1, 1);
 
@@ -78,5 +107,24 @@ describe("useCommandCompletion", () => {
 
     clearSuggestions();
     expect(getSuggestions()).toEqual([]);
+  });
+
+  it("completes an argument value from the catalog", () => {
+    const theme = command({
+      name: "theme",
+      arguments: [
+        { name: "dark", description: "Dark", values: ["dark"] },
+        { name: "light", description: "Light", values: ["light"] },
+      ],
+    });
+    const { textarea, complete, replaceValue } = setup(
+      "theme d",
+      catalog(["theme"], [theme]),
+    );
+    textarea.setSelectionRange(7, 7);
+
+    complete();
+
+    expect(replaceValue).toHaveBeenCalledWith("theme dark ", 11);
   });
 });
