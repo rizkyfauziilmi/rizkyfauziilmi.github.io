@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { LINE_CLASSNAME, TERMINAL_INDENT } from "../constants";
+import { LINE_CLASSNAME } from "../constants";
 
 interface CommandSuggestionsProps {
   names: string[];
@@ -20,7 +20,6 @@ export function CommandSuggestions({
       aria-live="polite"
       data-command-suggestions=""
       className={cn(LINE_CLASSNAME, "text-muted-foreground")}
-      style={{ paddingLeft: TERMINAL_INDENT }}
     >
       <span className="text-foreground/70">Tab:</span>{" "}
       <span className="inline-flex flex-wrap gap-x-2 gap-y-1">

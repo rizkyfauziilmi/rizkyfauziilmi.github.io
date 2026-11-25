@@ -19,6 +19,8 @@ describe("CommandSuggestions", () => {
     expect(hint?.textContent).toContain("shutdown");
     expect(hint?.textContent).toContain("sudo");
     expect(hint?.className).not.toContain("absolute");
+    // The hint starts at the prompt's left edge, not after the prompt text.
+    expect(hint?.getAttribute("style")).toBeNull();
     expect(container.firstElementChild?.nextElementSibling).toBe(hint);
   });
 
