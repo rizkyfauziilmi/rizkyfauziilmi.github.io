@@ -21,6 +21,7 @@
 
 When the user asks for a commit:
 
+- Write all commit messages in English.
 - Use Conventional Commits: `<type>(optional scope): <imperative subject>`.
 - Allowed types: `feat`, `fix`, `docs`, `test`, `ci`, `chore`, `refactor`, `perf`, `build`, `style`.
 - Subject line: lowercase, imperative mood, no trailing period, max 72 characters.
@@ -37,8 +38,9 @@ When the user asks for a pull request:
 - Use the `gh` CLI, not the GitHub MCP API (the MCP token may lack write permission).
 - Push the head branch first (`git push origin <head>`), and check for an existing open PR for the same head/base.
 - Look for `.github/PULL_REQUEST_TEMPLATE.md` or files under `.github/PULL_REQUEST_TEMPLATE/`; follow the template if present.
+- Write the PR title and body in English, including all section headings.
 - Title: short, descriptive, Conventional Commits style.
-- Body: complete and self-contained. Include Summary/Ringkasan, Changes/Perubahan, Problem fixed/Masalah yang diatasi, Impact/Dampak, a Verification checklist/Verifikasi with exact commands and results, Commit list, and Notes/Catatan. Mention the version, file paths, and links to relevant issues/PRs.
+- Body: complete and self-contained. Include Summary, Changes, Problem fixed, Impact, a Verification checklist with exact commands and results, a Commit list, and Notes. Mention the version, file paths, and links to relevant issues/PRs.
 - For a long body, write the markdown to a temporary file and use `gh pr create --body-file`.
 - Add relevant labels, assign the repository owner by default, and request reviewers when known.
 - Include head → base, diff scope (files, additions/deletions), and the final PR URL in the report.
