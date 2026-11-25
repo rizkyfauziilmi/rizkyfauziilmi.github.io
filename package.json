@@ -1,7 +1,7 @@
 {
   "name": "rizkyfauziilmi.github.io",
   "private": true,
-  "version": "1.9.4",
+  "version": "1.9.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "oxlint",
+    "prepare": "git config core.hooksPath .githooks",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
