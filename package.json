@@ -1,11 +1,13 @@
 {
   "name": "rizkyfauziilmi.github.io",
   "private": true,
-  "version": "1.9.1",
+  "version": "1.9.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
@@ -32,6 +34,8 @@
     "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^31.0.1",
     "oxlint": "^1.90.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "shadcn": "^4.23.0",
     "typescript": "~7.0.2",
     "vite": "^8.3.6",
