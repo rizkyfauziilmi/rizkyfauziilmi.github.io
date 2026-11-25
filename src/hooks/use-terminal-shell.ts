@@ -34,7 +34,14 @@ export function useTerminalShell({
     navigate: navigateHistory,
     reset,
   } = useCommandHistory(commands, inputRef);
-  const { complete, suggestions, clearSuggestions } = useCommandCompletion({
+  const {
+    complete,
+    suggestions,
+    activeSuggestion,
+    hasSelection,
+    acceptCompletion,
+    clearSuggestions,
+  } = useCommandCompletion({
     value,
     inputRef,
     catalog: COMMAND_CATALOG,
@@ -85,6 +92,10 @@ export function useTerminalShell({
     navigate,
     complete,
     suggestions,
+    activeSuggestion,
+    hasSelection,
+    acceptCompletion,
+    clearSuggestions,
     runValue,
     runHelp,
     leaveTui,

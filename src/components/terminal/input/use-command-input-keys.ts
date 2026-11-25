@@ -6,10 +6,13 @@ import {
 import type { HistoryDirection } from "@/hooks";
 
 interface UseCommandInputKeysOptions {
-  onComplete: () => void;
+  onComplete: (backward?: boolean) => void;
   onHelp: () => void;
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
+  onAcceptCompletion: () => boolean;
+  onCancelCompletion: () => void;
+  hasCompletionSelection: boolean;
 }
 
 /** Keyboard shortcuts for the terminal prompt, kept out of the render layer. */
@@ -18,21 +21,25 @@ export function useCommandInputKeys({
   onHelp,
   onHistoryNavigate,
   onSubmit,
+  onAcceptCompletion,
+  onCancelCompletion,
+  hasCompletionSelection,
 }: UseCommandInputKeysOptions) {
   return useCallback(
     (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
       if (event.nativeEvent.isComposing) return;
 
-      // Plain Tab is tab completion. Shift+Tab stays with the root focus trap.
+      // Plain Tab cycles forward. Shift+Tab only joins the cycle while a
+      // completion list is active; otherwise it stays with the focus trap.
       if (
         event.key === "Tab" &&
-        !event.shiftKey &&
         !event.ctrlKey &&
         !event.metaKey &&
-        !event.altKey
+        !event.altKey &&
+        (!event.shiftKey || hasCompletionSelection)
       ) {
         event.preventDefault();
-        onComplete();
+        onComplete(event.shiftKey);
         return;
       }
 
@@ -43,6 +50,12 @@ export function useCommandInputKeys({
       ) {
         event.preventDefault();
         onHelp();
+        return;
+      }
+
+      if (event.key === "Escape" && hasCompletionSelection) {
+        event.preventDefault();
+        onCancelCompletion();
         return;
       }
 
@@ -63,8 +76,18 @@ export function useCommandInputKeys({
 
       if (event.key !== "Enter") return;
       event.preventDefault();
+      // First Enter accepts a highlighted completion; the next one submits.
+      if (onAcceptCompletion()) return;
       onSubmit();
     },
-    [onComplete, onHelp, onHistoryNavigate, onSubmit],
+    [
+      onComplete,
+      onHelp,
+      onHistoryNavigate,
+      onSubmit,
+      onAcceptCompletion,
+      onCancelCompletion,
+      hasCompletionSelection,
+    ],
   );
 }

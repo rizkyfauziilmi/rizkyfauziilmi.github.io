@@ -12,9 +12,12 @@ import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
 export {
+  applyCandidate,
   completeCommand,
+  getCompletionSpan,
   type CommandCompletion,
   type CompletionCatalog,
+  type CompletionSpan,
 } from "./complete";
 export { THEME_MODES } from "./types";
 

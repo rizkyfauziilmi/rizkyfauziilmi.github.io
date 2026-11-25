@@ -16,6 +16,9 @@ function renderInput() {
       onSubmit={() => {}}
       onHelp={() => {}}
       onComplete={() => {}}
+      onAcceptCompletion={() => false}
+      onCancelCompletion={() => {}}
+      hasCompletionSelection={false}
     />,
   );
 }

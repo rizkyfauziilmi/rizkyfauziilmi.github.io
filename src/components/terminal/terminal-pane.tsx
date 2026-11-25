@@ -35,6 +35,10 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
     navigate,
     complete,
     suggestions,
+    activeSuggestion,
+    hasSelection,
+    acceptCompletion,
+    clearSuggestions,
     runValue,
     runHelp,
     leaveTui,
@@ -92,12 +96,18 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
               onChange={changeValue}
               onHistoryNavigate={navigate}
               onComplete={complete}
+              onAcceptCompletion={acceptCompletion}
+              onCancelCompletion={clearSuggestions}
+              hasCompletionSelection={hasSelection}
               onSubmit={runValue}
               onHelp={runHelp}
               placeholder={DEFAULT_PLACEHOLDER}
             />
           </InputGroup>
-          <CommandSuggestions names={suggestions} />
+          <CommandSuggestions
+            names={suggestions}
+            activeIndex={activeSuggestion}
+          />
         </div>
       )}
     </div>

@@ -11,11 +11,31 @@ function setup(overrides: Partial<Options> = {}) {
   const onHelp = overrides.onHelp ?? vi.fn();
   const onHistoryNavigate = overrides.onHistoryNavigate ?? vi.fn(() => true);
   const onSubmit = overrides.onSubmit ?? vi.fn();
+  const onAcceptCompletion =
+    overrides.onAcceptCompletion ?? vi.fn(() => false);
+  const onCancelCompletion = overrides.onCancelCompletion ?? vi.fn();
+  const hasCompletionSelection = overrides.hasCompletionSelection ?? false;
   const hook = renderHook(() =>
-    useCommandInputKeys({ onComplete, onHelp, onHistoryNavigate, onSubmit }),
+    useCommandInputKeys({
+      onComplete,
+      onHelp,
+      onHistoryNavigate,
+      onSubmit,
+      onAcceptCompletion,
+      onCancelCompletion,
+      hasCompletionSelection,
+    }),
   );
 
-  return { ...hook, onComplete, onHelp, onHistoryNavigate, onSubmit };
+  return {
+    ...hook,
+    onComplete,
+    onHelp,
+    onHistoryNavigate,
+    onSubmit,
+    onAcceptCompletion,
+    onCancelCompletion,
+  };
 }
 
 function makeEvent(
@@ -49,7 +69,7 @@ describe("useCommandInputKeys", () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
-  it("leaves Shift+Tab to the focus trap", () => {
+  it("leaves Shift+Tab to the focus trap without a selection", () => {
     const { result, onComplete } = setup();
     const { event, preventDefault } = makeEvent("Tab", { shiftKey: true });
 
@@ -57,6 +77,16 @@ describe("useCommandInputKeys", () => {
 
     expect(onComplete).not.toHaveBeenCalled();
     expect(preventDefault).not.toHaveBeenCalled();
+  });
+
+  it("cycles backward with Shift+Tab while a selection is active", () => {
+    const { result, onComplete } = setup({ hasCompletionSelection: true });
+    const { event, preventDefault } = makeEvent("Tab", { shiftKey: true });
+
+    act(() => result.current(event));
+
+    expect(onComplete).toHaveBeenCalledWith(true);
+    expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
   it("ignores Tab during IME composition", () => {
@@ -121,5 +151,39 @@ describe("useCommandInputKeys", () => {
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("accepts a highlighted completion instead of submitting", () => {
+    const { result, onSubmit, onAcceptCompletion } = setup({
+      onAcceptCompletion: vi.fn(() => true),
+    });
+    const { event } = makeEvent("Enter");
+
+    act(() => result.current(event));
+
+    expect(onAcceptCompletion).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("cancels an active completion with Escape", () => {
+    const { result, onCancelCompletion } = setup({
+      hasCompletionSelection: true,
+    });
+    const { event, preventDefault } = makeEvent("Escape");
+
+    act(() => result.current(event));
+
+    expect(onCancelCompletion).toHaveBeenCalledTimes(1);
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Escape without an active completion", () => {
+    const { result, onCancelCompletion } = setup();
+    const { event, preventDefault } = makeEvent("Escape");
+
+    act(() => result.current(event));
+
+    expect(onCancelCompletion).not.toHaveBeenCalled();
+    expect(preventDefault).not.toHaveBeenCalled();
   });
 });

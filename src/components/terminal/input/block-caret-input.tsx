@@ -16,7 +16,10 @@ interface BlockCaretInputProps {
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onHelp: () => void;
-  onComplete: () => void;
+  onComplete: (backward?: boolean) => void;
+  onAcceptCompletion: () => boolean;
+  onCancelCompletion: () => void;
+  hasCompletionSelection: boolean;
   placeholder?: string;
 }
 
@@ -28,6 +31,9 @@ export function BlockCaretInput({
   onSubmit,
   onHelp,
   onComplete,
+  onAcceptCompletion,
+  onCancelCompletion,
+  hasCompletionSelection,
   placeholder,
 }: BlockCaretInputProps) {
   const { mirrorRef, prefixRef, markerRef, caretStyle, showCaret } =
@@ -37,6 +43,9 @@ export function BlockCaretInput({
     onHelp,
     onHistoryNavigate,
     onSubmit,
+    onAcceptCompletion,
+    onCancelCompletion,
+    hasCompletionSelection,
   });
 
   return (

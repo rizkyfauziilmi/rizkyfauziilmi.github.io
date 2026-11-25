@@ -75,6 +75,7 @@ describe("HelpOutput", () => {
     expect(tabs.length).toBeGreaterThan(0);
     expect(tabs[0].tagName).toBe("KBD");
     expect(screen.getByText("Ctrl").tagName).toBe("KBD");
+    expect(screen.getByText("Enter").tagName).toBe("KBD");
   });
 
   it("renders the Tab completion tips", () => {
@@ -84,6 +85,8 @@ describe("HelpOutput", () => {
       screen.getByText(/completes commands, flags, or argument values/),
     ).toBeTruthy();
     expect(screen.getByText(/lists matches when ambiguous/)).toBeTruthy();
+    expect(screen.getByText(/cycles matches/)).toBeTruthy();
+    expect(screen.getByText(/inserts the selected match/)).toBeTruthy();
   });
 
   it("routes help entries through the view registry", () => {

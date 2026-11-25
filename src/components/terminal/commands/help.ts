@@ -28,6 +28,15 @@ export const HELP_TIPS: HelpTipPart[][] = [
       " completes commands, flags, or argument values; lists matches when ambiguous",
     ),
   ],
+  [
+    key("Tab"),
+    text(" cycles matches; "),
+    key("Shift"),
+    text("+"),
+    key("Tab"),
+    text(" goes back"),
+  ],
+  [key("Enter"), text(" inserts the selected match; press again to run")],
   [key("Ctrl"), key("?"), text(" shows this menu")],
   [key("↑"), key("↓"), text(" browse commands from your history")],
   [

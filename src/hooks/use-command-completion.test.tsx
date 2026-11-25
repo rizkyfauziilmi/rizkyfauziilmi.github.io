@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { act, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -31,27 +31,43 @@ function catalog(
 }
 
 function Harness({
-  value,
+  initialValue,
   catalog: completionCatalog,
   apiRef,
   replaceValue,
 }: {
-  value: string;
+  initialValue: string;
   catalog: CompletionCatalog;
   apiRef: { current: Api | null };
   replaceValue: (value: string, caret: number) => void;
 }) {
+  const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const nextCaret = useRef<number | null>(null);
+  const updateValue = useCallback(
+    (next: string, caret: number) => {
+      replaceValue(next, caret);
+      nextCaret.current = caret;
+      setValue(next);
+    },
+    [replaceValue],
+  );
   const api = useCommandCompletion({
     value,
     inputRef,
     catalog: completionCatalog,
-    replaceValue,
+    replaceValue: updateValue,
   });
 
   useEffect(() => {
     apiRef.current = api;
   }, [api, apiRef]);
+
+  useEffect(() => {
+    if (nextCaret.current === null) return;
+    inputRef.current?.setSelectionRange(nextCaret.current, nextCaret.current);
+    nextCaret.current = null;
+  }, [value]);
 
   return <textarea ref={inputRef} value={value} readOnly />;
 }
@@ -61,7 +77,7 @@ function setup(value: string, completionCatalog: CompletionCatalog) {
   const replaceValue = vi.fn();
   const view = render(
     <Harness
-      value={value}
+      initialValue={value}
       catalog={completionCatalog}
       apiRef={apiRef}
       replaceValue={replaceValue}
@@ -72,19 +88,33 @@ function setup(value: string, completionCatalog: CompletionCatalog) {
     return apiRef.current;
   };
   const textarea = view.container.querySelector("textarea") as HTMLTextAreaElement;
+  const complete = (backward?: boolean) =>
+    act(() => {
+      api().complete(backward);
+    });
+  const accept = () => {
+    let result = false;
+    act(() => {
+      result = api().acceptCompletion();
+    });
+    return result;
+  };
 
   return {
     textarea,
     replaceValue,
-    complete: () => act(() => api().complete()),
-    clearSuggestions: () => act(() => api().clearSuggestions()),
+    complete,
+    accept,
+    clear: () => act(() => api().clearSuggestions()),
     getSuggestions: () => api().suggestions,
+    getActiveSuggestion: () => api().activeSuggestion,
+    getHasSelection: () => api().hasSelection,
   };
 }
 
 describe("useCommandCompletion", () => {
   it("uses the textarea caret and replaces the value with the completion", () => {
-    const { textarea, complete, replaceValue } = setup(
+    const { textarea, complete, replaceValue, getHasSelection } = setup(
       "the",
       catalog(["theme", "shutdown"]),
     );
@@ -93,20 +123,7 @@ describe("useCommandCompletion", () => {
     complete();
 
     expect(replaceValue).toHaveBeenCalledWith("theme ", 6);
-  });
-
-  it("exposes ambiguous suggestions and clears them on demand", () => {
-    const { textarea, complete, clearSuggestions, getSuggestions } = setup(
-      "s",
-      catalog(["shutdown", "sudo"]),
-    );
-    textarea.setSelectionRange(1, 1);
-
-    complete();
-    expect(getSuggestions()).toEqual(["shutdown", "sudo"]);
-
-    clearSuggestions();
-    expect(getSuggestions()).toEqual([]);
+    expect(getHasSelection()).toBe(false);
   });
 
   it("completes an argument value from the catalog", () => {
@@ -126,5 +143,79 @@ describe("useCommandCompletion", () => {
     complete();
 
     expect(replaceValue).toHaveBeenCalledWith("theme dark ", 11);
+  });
+
+  it("cycles ambiguous matches from the original text and wraps", () => {
+    const { textarea, complete, replaceValue, getSuggestions, getActiveSuggestion } =
+      setup("s", catalog(["shutdown", "sudo"]));
+    textarea.setSelectionRange(1, 1);
+
+    complete();
+    expect(replaceValue).toHaveBeenLastCalledWith("s", 1);
+    expect(getSuggestions()).toEqual(["shutdown", "sudo"]);
+    expect(getActiveSuggestion()).toBe(0);
+
+    complete();
+    expect(getActiveSuggestion()).toBe(1);
+    expect(replaceValue).toHaveBeenCalledTimes(1);
+
+    complete();
+    expect(getActiveSuggestion()).toBe(0);
+
+    complete(true);
+    expect(getActiveSuggestion()).toBe(1);
+    expect(replaceValue).toHaveBeenCalledTimes(1);
+  });
+
+  it("accepts the highlighted match without changing the candidate set", () => {
+    const { textarea, complete, accept, replaceValue, getSuggestions } = setup(
+      "s",
+      catalog(["shutdown", "sudo"]),
+    );
+    textarea.setSelectionRange(1, 1);
+
+    complete();
+    complete();
+    expect(accept()).toBe(true);
+
+    expect(replaceValue).toHaveBeenLastCalledWith("sudo ", 5);
+    expect(getSuggestions()).toEqual([]);
+  });
+
+  it("does nothing when accepting without an active selection", () => {
+    const { accept, replaceValue } = setup("the", catalog(["theme"]));
+
+    expect(accept()).toBe(false);
+    expect(replaceValue).not.toHaveBeenCalled();
+  });
+
+  it("clears the selection on demand", () => {
+    const { textarea, complete, clear, getSuggestions, getHasSelection } =
+      setup("s", catalog(["shutdown", "sudo"]));
+    textarea.setSelectionRange(1, 1);
+
+    complete();
+    expect(getHasSelection()).toBe(true);
+
+    clear();
+    expect(getSuggestions()).toEqual([]);
+    expect(getHasSelection()).toBe(false);
+  });
+
+  it("starts over when the caret no longer matches the selection", () => {
+    const { textarea, complete, getSuggestions, getHasSelection } = setup(
+      "s dark",
+      catalog(["shutdown", "sudo"]),
+    );
+    textarea.setSelectionRange(1, 1);
+
+    complete();
+    expect(getSuggestions()).toEqual(["shutdown", "sudo"]);
+
+    textarea.setSelectionRange(6, 6);
+    complete();
+
+    expect(getSuggestions()).toEqual([]);
+    expect(getHasSelection()).toBe(false);
   });
 });

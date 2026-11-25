@@ -59,6 +59,8 @@ describe("buildHelpModel", () => {
       "completes commands, flags, or argument values",
     );
     expect(flattened).toContain("lists matches when ambiguous");
+    expect(flattened).toContain("cycles matches");
+    expect(flattened).toContain("inserts the selected match");
     expect(flattened).toContain("classic Unix troublemakers");
   });
 });

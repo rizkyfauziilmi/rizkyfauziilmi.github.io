@@ -6,7 +6,7 @@ export type CommandCompletion = {
   value: string;
   /** Desired caret position in `value`. */
   caret: number;
-  /** All candidates when the common prefix cannot be extended. */
+  /** Every sorted candidate when the active token is ambiguous. */
   suggestions: string[];
 };
 
@@ -17,7 +17,13 @@ export type CompletionCatalog = {
   flagsFor: (command: CommandDefinition, isFirstArgument: boolean) => readonly string[];
 };
 
-type CompletionSpan = Pick<TokenSpan, "value" | "start" | "end" | "quoted">;
+export type CompletionSpan = Pick<TokenSpan, "start" | "end">;
+
+type CompletionToken = Pick<TokenSpan, "value" | "start" | "end" | "quoted">;
+
+function clampCaret(input: string, caret: number) {
+  return Math.max(0, Math.min(caret, input.length));
+}
 
 function longestCommonPrefix(values: string[]) {
   if (values.length === 0) return "";
@@ -38,49 +44,71 @@ function longestCommonPrefix(values: string[]) {
   return prefix;
 }
 
-function findActiveSpan(tokens: TokenSpan[], caret: number) {
+function findActiveToken(tokens: TokenSpan[], caret: number) {
   const index = tokens.findIndex((token) => caret <= token.end);
-  if (index >= 0) return { span: tokens[index], index };
+  if (index >= 0) return { token: tokens[index], index };
 
   // Caret after the last token (usually a trailing space): complete a virtual
   // empty token so new text lands exactly where the user stopped typing.
   return {
-    span: { value: "", start: caret, end: caret, quoted: false },
+    token: { value: "", start: caret, end: caret, quoted: false },
     index: tokens.length,
+  };
+}
+
+/** Token boundaries of the word completion applies to, in the source input. */
+export function getCompletionSpan(input: string, caret: number): CompletionSpan {
+  const safeCaret = clampCaret(input, caret);
+  const tokens = tokenizeWithSpans(input);
+  const [first] = tokens;
+
+  if (!first || safeCaret <= first.end) {
+    return { start: first?.start ?? safeCaret, end: first?.end ?? safeCaret };
+  }
+
+  const { token } = findActiveToken(tokens, safeCaret);
+  return { start: token.start, end: token.end };
+}
+
+/** Replaces one token with a candidate, preserving any text after it. */
+export function applyCandidate(
+  input: string,
+  span: CompletionSpan,
+  candidate: string,
+) {
+  const rest = input.slice(span.end);
+  const tail =
+    rest.length === 0 || /^\s/.test(rest) ? rest || " " : ` ${rest}`;
+
+  return {
+    value: `${input.slice(0, span.start)}${candidate}${tail}`,
+    caret: span.start + candidate.length + 1,
   };
 }
 
 function completeSpan(
   input: string,
   caret: number,
-  span: CompletionSpan,
+  token: CompletionToken,
   candidates: string[],
   unchanged: (suggestions?: string[]) => CommandCompletion,
 ): CommandCompletion {
-  const prefixEnd = Math.max(span.start, Math.min(caret, span.end));
-  const prefix = input.slice(span.start, prefixEnd);
+  const prefixEnd = Math.max(token.start, Math.min(caret, token.end));
+  const prefix = input.slice(token.start, prefixEnd);
   const matches = candidates.filter((name) => name.startsWith(prefix)).sort();
   if (matches.length === 0) return unchanged();
 
   if (matches.length === 1) {
-    const name = matches[0];
-    const rest = input.slice(span.end);
-    const tail =
-      rest.length === 0 || /^\s/.test(rest) ? rest || " " : ` ${rest}`;
-
-    return {
-      value: `${input.slice(0, span.start)}${name}${tail}`,
-      caret: span.start + name.length + 1,
-      suggestions: [],
-    };
+    return { ...applyCandidate(input, token, matches[0]), suggestions: [] };
   }
 
   const common = longestCommonPrefix(matches);
   if (common.length > prefix.length) {
     return {
-      value: `${input.slice(0, span.start)}${common}${input.slice(span.end)}`,
-      caret: span.start + common.length,
-      suggestions: [],
+      value: `${input.slice(0, token.start)}${common}${input.slice(token.end)}`,
+      caret: token.start + common.length,
+      // Keep the full set so repeated Tab presses can cycle through it.
+      suggestions: matches,
     };
   }
 
@@ -96,7 +124,7 @@ export function completeCommand(
   caret: number,
   catalog: CompletionCatalog,
 ): CommandCompletion {
-  const safeCaret = Math.max(0, Math.min(caret, input.length));
+  const safeCaret = clampCaret(input, caret);
   const names = [...catalog.commandNames].sort();
   const unchanged = (suggestions: string[] = []): CommandCompletion => ({
     value: input,
@@ -116,8 +144,8 @@ export function completeCommand(
   const command = catalog.commands.get(first.value);
   if (!command) return unchanged();
 
-  const { span, index } = findActiveSpan(tokens, safeCaret);
-  if (span.quoted) return unchanged();
+  const { token, index } = findActiveToken(tokens, safeCaret);
+  if (token.quoted) return unchanged();
 
   const argumentIndex = index - 1;
   // Registry arguments describe accepted forms of the command's argument slot,
@@ -129,5 +157,5 @@ export function completeCommand(
   const flags = catalog.flagsFor(command, argumentIndex === 0);
   const candidates = [...new Set([...values, ...flags])];
 
-  return completeSpan(input, safeCaret, span, candidates, unchanged);
+  return completeSpan(input, safeCaret, token, candidates, unchanged);
 }

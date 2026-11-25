@@ -82,6 +82,28 @@ describe("useTerminalShell", () => {
     expect(result.current.suggestions).toEqual([]);
   });
 
+  it("cycles ambiguous completions and accepts without submitting", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("s"));
+    act(() => result.current.complete());
+    expect(result.current.activeSuggestion).toBe(0);
+
+    act(() => result.current.complete());
+    expect(result.current.value).toBe("s");
+    expect(result.current.activeSuggestion).toBe(1);
+
+    const entryCount = result.current.entries.length;
+    let accepted = false;
+    act(() => {
+      accepted = result.current.acceptCompletion();
+    });
+
+    expect(accepted).toBe(true);
+    expect(result.current.suggestions).toEqual([]);
+    expect(result.current.entries).toHaveLength(entryCount);
+  });
+
   it("exits an active TUI and restores focus", () => {
     const { result, focusInput } = setup();
 

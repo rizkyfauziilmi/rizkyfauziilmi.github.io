@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { completeCommand, type CompletionCatalog } from "./complete";
+import {
+  applyCandidate,
+  completeCommand,
+  getCompletionSpan,
+  type CompletionCatalog,
+} from "./complete";
 import { COMMAND_CATALOG } from "./index";
 import type { CommandDefinition } from "./types";
 
@@ -50,10 +55,14 @@ describe("completeCommand", () => {
     ).toEqual({ value: "theme dark", caret: 6, suggestions: [] });
   });
 
-  it("extends an ambiguous command prefix to the common prefix", () => {
+  it("extends an ambiguous command prefix and keeps every match for cycling", () => {
     expect(
       completeCommand("t", 1, catalog(["theme", "theatre", "theme2"])),
-    ).toEqual({ value: "the", caret: 3, suggestions: [] });
+    ).toEqual({
+      value: "the",
+      caret: 3,
+      suggestions: ["theatre", "theme", "theme2"],
+    });
   });
 
   it("lists command candidates when the common prefix cannot grow", () => {
@@ -188,7 +197,7 @@ describe("completeCommand", () => {
     ).toEqual({ value: 'theme "da', caret: 9, suggestions: [] });
   });
 
-  it("extends an ambiguous argument prefix to the common prefix", () => {
+  it("extends an ambiguous argument prefix and keeps every match for cycling", () => {
     const candidateCommand = command({
       name: "cmd",
       arguments: [
@@ -202,7 +211,11 @@ describe("completeCommand", () => {
 
     expect(
       completeCommand("cmd da", 6, catalog(["cmd"], [candidateCommand])),
-    ).toEqual({ value: "cmd dark", caret: 8, suggestions: [] });
+    ).toEqual({
+      value: "cmd dark",
+      caret: 8,
+      suggestions: ["dark", "darkest"],
+    });
   });
 
   it("does not complete arguments for an unknown command", () => {
@@ -210,6 +223,29 @@ describe("completeCommand", () => {
       value: "nope d",
       caret: 6,
       suggestions: [],
+    });
+  });
+});
+
+describe("completion token helpers", () => {
+  it("locates the token under the caret", () => {
+    expect(getCompletionSpan("th dark", 2)).toEqual({ start: 0, end: 2 });
+    expect(getCompletionSpan("theme dark", 8)).toEqual({ start: 6, end: 10 });
+  });
+
+  it("uses a virtual token when the caret follows the last word", () => {
+    expect(getCompletionSpan("theme ", 6)).toEqual({ start: 6, end: 6 });
+    expect(getCompletionSpan("  ", 2)).toEqual({ start: 2, end: 2 });
+  });
+
+  it("applies a candidate while preserving text after the token", () => {
+    expect(applyCandidate("the dark", { start: 0, end: 3 }, "theme")).toEqual({
+      value: "theme dark",
+      caret: 6,
+    });
+    expect(applyCandidate("theme ", { start: 6, end: 6 }, "dark")).toEqual({
+      value: "theme dark ",
+      caret: 11,
     });
   });
 });
