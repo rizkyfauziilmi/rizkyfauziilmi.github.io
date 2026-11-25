@@ -50,6 +50,29 @@ describe("useTerminalShell", () => {
     ).toBe(true);
   });
 
+  it("completes a known command and clears suggestions when typing again", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("the"));
+    act(() => result.current.complete());
+
+    expect(result.current.value).toBe("theme ");
+
+    act(() => result.current.changeValue("them"));
+    expect(result.current.suggestions).toEqual([]);
+  });
+
+  it("exposes ambiguous completions and clears them on submit", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("s"));
+    act(() => result.current.complete());
+    expect(result.current.suggestions).toEqual(["shutdown", "sudo"]);
+
+    act(() => result.current.runValue());
+    expect(result.current.suggestions).toEqual([]);
+  });
+
   it("exits an active TUI and restores focus", () => {
     const { result, focusInput } = setup();
 

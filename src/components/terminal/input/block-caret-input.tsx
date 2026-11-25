@@ -16,6 +16,7 @@ interface BlockCaretInputProps {
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onHelp: () => void;
+  onComplete: () => void;
   placeholder?: string;
 }
 
@@ -26,11 +27,13 @@ export function BlockCaretInput({
   onHistoryNavigate,
   onSubmit,
   onHelp,
+  onComplete,
   placeholder,
 }: BlockCaretInputProps) {
   const { mirrorRef, prefixRef, markerRef, caretStyle, showCaret } =
     useBlockCaret(inputRef, value);
   const handleKeyDown = useCommandInputKeys({
+    onComplete,
     onHelp,
     onHistoryNavigate,
     onSubmit,

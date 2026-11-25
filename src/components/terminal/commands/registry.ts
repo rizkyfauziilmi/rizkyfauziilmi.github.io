@@ -1,5 +1,5 @@
 import { buildFetchOutput } from "./fetch";
-import { buildCommandHelp, buildHelpOutput } from "./help";
+import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
 import {
   isThemeMode,
@@ -93,13 +93,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "help",
     description: "Display this help message",
-    // Pass the registry explicitly: help.ts must not import registry.ts or the
-    // two modules would form a cycle.
-    run: () => ({
-      type: "output",
-      text: buildHelpOutput(COMMAND_DEFINITIONS),
-      isError: false,
-    }),
+    // HelpOutput reads the registry directly; the result stays plain data.
+    run: () => ({ type: "component", view: "help" }),
   },
   FETCH_COMMAND,
   {

@@ -6,6 +6,20 @@ import { BlockCaretInput } from "./block-caret-input";
 import { CommandHighlight } from "./command-highlight";
 import { TerminalInputLine } from "./terminal-input-line";
 
+function renderInput() {
+  return render(
+    <BlockCaretInput
+      inputRef={createRef<HTMLTextAreaElement>()}
+      value="help"
+      onChange={() => {}}
+      onHistoryNavigate={() => false}
+      onSubmit={() => {}}
+      onHelp={() => {}}
+      onComplete={() => {}}
+    />,
+  );
+}
+
 describe("CommandHighlight", () => {
   it("uses the command colour when the name is in the registry", () => {
     const { container } = render(<CommandHighlight value="theme dark" />);
@@ -48,16 +62,7 @@ describe("TerminalInputLine", () => {
 
 describe("BlockCaretInput", () => {
   it("renders a visible overlay while the textarea keeps the real value", () => {
-    const { container } = render(
-      <BlockCaretInput
-        inputRef={createRef<HTMLTextAreaElement>()}
-        value="help"
-        onChange={() => {}}
-        onHistoryNavigate={() => false}
-        onSubmit={() => {}}
-        onHelp={() => {}}
-      />,
-    );
+    const { container } = renderInput();
 
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
     expect(textarea.value).toBe("help");
@@ -71,5 +76,6 @@ describe("BlockCaretInput", () => {
     expect(
       overlay?.querySelector("[data-highlight-kind='command']")?.textContent,
     ).toBe("help");
+    expect(container.querySelector("[data-command-suggestions]")).toBeNull();
   });
 });

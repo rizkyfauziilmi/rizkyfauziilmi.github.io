@@ -6,6 +6,7 @@ import {
 import type { HistoryDirection } from "@/hooks";
 
 interface UseCommandInputKeysOptions {
+  onComplete: () => void;
   onHelp: () => void;
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
@@ -13,12 +14,28 @@ interface UseCommandInputKeysOptions {
 
 /** Keyboard shortcuts for the terminal prompt, kept out of the render layer. */
 export function useCommandInputKeys({
+  onComplete,
   onHelp,
   onHistoryNavigate,
   onSubmit,
 }: UseCommandInputKeysOptions) {
   return useCallback(
     (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.nativeEvent.isComposing) return;
+
+      // Plain Tab is tab completion. Shift+Tab stays with the root focus trap.
+      if (
+        event.key === "Tab" &&
+        !event.shiftKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
+        event.preventDefault();
+        onComplete();
+        return;
+      }
+
       // Ctrl+? (or Ctrl+/) is the global help shortcut, handled before arrow/Enter logic.
       if (
         (event.ctrlKey || event.metaKey) &&
@@ -48,6 +65,6 @@ export function useCommandInputKeys({
       event.preventDefault();
       onSubmit();
     },
-    [onHelp, onHistoryNavigate, onSubmit],
+    [onComplete, onHelp, onHistoryNavigate, onSubmit],
   );
 }

@@ -10,7 +10,11 @@ import { InputGroup } from "@/components/ui/input-group";
 import { useTerminalShell } from "@/hooks";
 import { PROMPT } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
-import { HaltedScreen, TerminalEntryView } from "./output";
+import {
+  CommandSuggestions,
+  HaltedScreen,
+  TerminalEntryView,
+} from "./output";
 import { ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
@@ -29,6 +33,8 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
     activeTui,
     changeValue,
     navigate,
+    complete,
+    suggestions,
     runValue,
     runHelp,
     leaveTui,
@@ -43,7 +49,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
 
   useLayoutEffect(() => {
     scrollToEnd();
-  }, [entries, value, scrollToEnd]);
+  }, [entries, value, suggestions, scrollToEnd]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -85,11 +91,13 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
               value={value}
               onChange={changeValue}
               onHistoryNavigate={navigate}
+              onComplete={complete}
               onSubmit={runValue}
               onHelp={runHelp}
               placeholder={DEFAULT_PLACEHOLDER}
             />
           </InputGroup>
+          <CommandSuggestions names={suggestions} />
         </div>
       )}
     </div>

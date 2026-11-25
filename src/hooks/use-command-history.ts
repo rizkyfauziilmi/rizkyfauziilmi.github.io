@@ -14,18 +14,31 @@ type CommandHistoryState = {
   draft: string;
   // null means "not browsing history"; otherwise it points into commands[].
   activeIndex: number | null;
-  // Incremented on every recall so the caret effect runs even when React bails
-  // out because the recalled text equals the current value.
+  // Incremented on every programmatic caret move so React does not skip the
+  // effect when the new text happens to equal the old text.
   caretRequestId: number;
+  // null means "end of input"; completion supplies an explicit position.
+  caretIndex: number | null;
 };
 
 type CommandHistoryAction =
   | { type: "change"; value: string }
+  | {
+      type: "replace";
+      value: string;
+      caret: number;
+    }
   | { type: "recall"; value: string; index: number | null }
   | { type: "reset" };
 
 function createInitialState(): CommandHistoryState {
-  return { value: "", draft: "", activeIndex: null, caretRequestId: 0 };
+  return {
+    value: "",
+    draft: "",
+    activeIndex: null,
+    caretRequestId: 0,
+    caretIndex: null,
+  };
 }
 
 function reducer(
@@ -39,6 +52,16 @@ function reducer(
         value: action.value,
         draft: action.value,
         activeIndex: null,
+        caretIndex: null,
+      };
+    case "replace":
+      return {
+        ...state,
+        value: action.value,
+        draft: action.value,
+        activeIndex: null,
+        caretRequestId: state.caretRequestId + 1,
+        caretIndex: action.caret,
       };
     case "recall":
       return {
@@ -46,9 +69,13 @@ function reducer(
         draft: state.draft,
         activeIndex: action.index,
         caretRequestId: state.caretRequestId + 1,
+        caretIndex: null,
       };
     case "reset":
-      return { ...createInitialState(), caretRequestId: state.caretRequestId };
+      return {
+        ...createInitialState(),
+        caretRequestId: state.caretRequestId,
+      };
   }
 }
 
@@ -86,13 +113,10 @@ export function useCommandHistory(
     dispatch({ type: "change", value: next });
   }, []);
 
-  const moveCaretToEnd = useCallback(() => {
-    const input = inputRef.current;
-    if (!input) return;
-
-    const end = input.value.length;
-    input.setSelectionRange(end, end);
-  }, [inputRef]);
+  // Completion changes the value but also owns where the caret should land.
+  const replaceValue = useCallback((next: string, caret: number) => {
+    dispatch({ type: "replace", value: next, caret });
+  }, []);
 
   const navigate = useCallback(
     (direction: HistoryDirection) => {
@@ -129,8 +153,13 @@ export function useCommandHistory(
 
   useLayoutEffect(() => {
     if (state.caretRequestId === 0) return;
-    moveCaretToEnd();
-  }, [state.caretRequestId, moveCaretToEnd]);
 
-  return { value: state.value, changeValue, navigate, reset };
+    const input = inputRef.current;
+    if (!input) return;
+
+    const target = state.caretIndex ?? input.value.length;
+    input.setSelectionRange(target, target);
+  }, [state.caretRequestId, state.caretIndex, inputRef]);
+
+  return { value: state.value, changeValue, replaceValue, navigate, reset };
 }

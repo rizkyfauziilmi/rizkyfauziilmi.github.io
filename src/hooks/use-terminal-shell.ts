@@ -1,6 +1,8 @@
 import { useCallback, type RefObject } from "react";
 
-import { useCommandHistory } from "./use-command-history";
+import { KNOWN_COMMAND_NAMES } from "@/components/terminal/commands";
+import { useCommandCompletion } from "./use-command-completion";
+import { useCommandHistory, type HistoryDirection } from "./use-command-history";
 import { useTerminalHistory } from "./use-terminal-history";
 
 interface UseTerminalShellOptions {
@@ -25,26 +27,54 @@ export function useTerminalShell({
     exitTui,
     powerOn,
   } = useTerminalHistory();
-  const { value, changeValue, navigate, reset } = useCommandHistory(
-    commands,
+  const {
+    value,
+    changeValue: setHistoryValue,
+    replaceValue,
+    navigate: navigateHistory,
+    reset,
+  } = useCommandHistory(commands, inputRef);
+  const { complete, suggestions, clearSuggestions } = useCommandCompletion({
+    value,
     inputRef,
+    candidates: KNOWN_COMMAND_NAMES,
+    replaceValue,
+  });
+
+  const changeValue = useCallback(
+    (next: string) => {
+      setHistoryValue(next);
+      clearSuggestions();
+    },
+    [setHistoryValue, clearSuggestions],
+  );
+
+  const navigate = useCallback(
+    (direction: HistoryDirection) => {
+      const handled = navigateHistory(direction);
+      if (handled) clearSuggestions();
+      return handled;
+    },
+    [navigateHistory, clearSuggestions],
   );
 
   const execute = useCallback(
     (command: string) => {
       if (!submit(command)) return;
       reset();
+      clearSuggestions();
       focusInput();
     },
-    [submit, reset, focusInput],
+    [submit, reset, clearSuggestions, focusInput],
   );
 
   const runValue = useCallback(() => execute(value), [execute, value]);
   const runHelp = useCallback(() => execute("help"), [execute]);
   const leaveTui = useCallback(() => {
     exitTui();
+    clearSuggestions();
     focusInput();
-  }, [exitTui, focusInput]);
+  }, [exitTui, clearSuggestions, focusInput]);
 
   return {
     entries,
@@ -53,6 +83,8 @@ export function useTerminalShell({
     activeTui,
     changeValue,
     navigate,
+    complete,
+    suggestions,
     runValue,
     runHelp,
     leaveTui,

@@ -4,10 +4,11 @@ export { isThemeMode, THEME_MODES } from "@/lib/theme";
 export type { ThemeMode } from "@/lib/theme";
 
 export type TuiView = "projects";
+export type ComponentView = "about" | "help";
 
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }
-  | { type: "component"; view: "about" }
+  | { type: "component"; view: ComponentView }
   | { type: "tui"; view: TuiView }
   | { type: "theme"; mode: ThemeMode; text: string }
   | { type: "reboot"; text: string }

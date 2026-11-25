@@ -4,6 +4,7 @@ import { tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
+export { completeCommand, type CommandCompletion } from "./complete";
 export { THEME_MODES } from "./types";
 
 // Every runnable command, including hidden eggs and aliases: highlighting must
@@ -13,6 +14,7 @@ export const KNOWN_COMMAND_NAMES: ReadonlySet<string> = new Set(
 );
 
 export type {
+  ComponentView,
   CommandContext,
   CommandResult,
   ThemeMode,

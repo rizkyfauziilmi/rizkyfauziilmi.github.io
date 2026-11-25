@@ -7,19 +7,21 @@ import { useCommandInputKeys } from "./use-command-input-keys";
 type Options = Parameters<typeof useCommandInputKeys>[0];
 
 function setup(overrides: Partial<Options> = {}) {
+  const onComplete = overrides.onComplete ?? vi.fn();
   const onHelp = overrides.onHelp ?? vi.fn();
   const onHistoryNavigate = overrides.onHistoryNavigate ?? vi.fn(() => true);
   const onSubmit = overrides.onSubmit ?? vi.fn();
   const hook = renderHook(() =>
-    useCommandInputKeys({ onHelp, onHistoryNavigate, onSubmit }),
+    useCommandInputKeys({ onComplete, onHelp, onHistoryNavigate, onSubmit }),
   );
 
-  return { ...hook, onHelp, onHistoryNavigate, onSubmit };
+  return { ...hook, onComplete, onHelp, onHistoryNavigate, onSubmit };
 }
 
 function makeEvent(
   key: string,
   modifiers: Partial<ReactKeyboardEvent<HTMLTextAreaElement>> = {},
+  isComposing = false,
 ) {
   const preventDefault = vi.fn();
   const event = {
@@ -28,6 +30,7 @@ function makeEvent(
     metaKey: false,
     altKey: false,
     shiftKey: false,
+    nativeEvent: { isComposing },
     preventDefault,
     ...modifiers,
   } as unknown as ReactKeyboardEvent<HTMLTextAreaElement>;
@@ -36,6 +39,36 @@ function makeEvent(
 }
 
 describe("useCommandInputKeys", () => {
+  it("completes on plain Tab", () => {
+    const { result, onComplete } = setup();
+    const { event, preventDefault } = makeEvent("Tab");
+
+    act(() => result.current(event));
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Shift+Tab to the focus trap", () => {
+    const { result, onComplete } = setup();
+    const { event, preventDefault } = makeEvent("Tab", { shiftKey: true });
+
+    act(() => result.current(event));
+
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(preventDefault).not.toHaveBeenCalled();
+  });
+
+  it("ignores Tab during IME composition", () => {
+    const { result, onComplete } = setup();
+    const { event, preventDefault } = makeEvent("Tab", {}, true);
+
+    act(() => result.current(event));
+
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(preventDefault).not.toHaveBeenCalled();
+  });
+
   it("runs help on Ctrl+/", () => {
     const { result, onHelp } = setup();
     const { event, preventDefault } = makeEvent("/", { ctrlKey: true });
