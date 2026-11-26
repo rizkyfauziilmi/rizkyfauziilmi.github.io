@@ -2,7 +2,7 @@ import { createRef, type ReactNode } from "react";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme";
 import { useTerminalShell } from "./use-terminal-shell";
 
 function Wrapper({ children }: { children: ReactNode }) {

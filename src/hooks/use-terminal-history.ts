@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer } from "react";
 
-import { useTheme } from "@/components/theme-context";
+import { useTheme } from "@/components/theme";
 import { downloadFile } from "@/components/terminal/download";
 import {
   runCommand,

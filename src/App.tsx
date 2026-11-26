@@ -1,5 +1,5 @@
 import Terminal from "./components/terminal";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./components/theme";
 import { Toaster } from "./components/ui/toast";
 
 function App() {

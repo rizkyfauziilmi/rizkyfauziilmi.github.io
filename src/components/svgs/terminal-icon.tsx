@@ -51,5 +51,3 @@ export function TerminalIcon({
     </svg>
   );
 }
-
-export default TerminalIcon;

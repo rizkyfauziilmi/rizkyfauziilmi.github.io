@@ -8,7 +8,6 @@ export {
   type CompletionSpan,
 } from "./complete";
 export { runCommand } from "./run";
-export { THEME_MODES } from "./types";
 
 export type {
   CommandDefinition,
