@@ -10,6 +10,11 @@
   - major: breaking changes
 - Report the final version and verification results.
 
+## Library and framework documentation
+
+- When you need API details or best practices for a library or framework, check the official docs shipped in `node_modules` first (for example `README.md`, `docs/`, and type declarations).
+- If the installed package has no usable docs, use the Context7 MCP instead of relying on memory or guessing.
+
 ## Documentation
 
 - Keep `README.md` accurate and up to date whenever commands, flags, scripts, tooling, or project structure change. Update it in the same change instead of waiting to be asked.
