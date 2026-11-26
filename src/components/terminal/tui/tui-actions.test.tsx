@@ -82,6 +82,59 @@ describe("TuiActions", () => {
     }
   });
 
+  it("skips disabled actions while navigating and never activates them", () => {
+    const first = vi.fn();
+    const disabled = vi.fn();
+    render(
+      <TuiActions
+        actions={[
+          { id: "first", label: "first", onSelect: first },
+          {
+            id: "disabled",
+            label: "disabled",
+            onSelect: disabled,
+            disabled: true,
+          },
+        ]}
+      />,
+    );
+
+    expect(isActive(/first/)).toBe(true);
+    const disabledButton = screen.getByRole("button", { name: "disabled" });
+    expect(disabledButton.hasAttribute("disabled")).toBe(true);
+    expect(disabledButton.hasAttribute("data-tui-interactive")).toBe(true);
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(isActive(/disabled/)).toBe(false);
+    expect(isActive(/first/)).toBe(true);
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(first).toHaveBeenCalledOnce();
+    expect(disabled).not.toHaveBeenCalled();
+  });
+
+  it("moves selection when the active action becomes disabled", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const actions = [
+      { id: "first", label: "first", onSelect: first },
+      { id: "second", label: "second", onSelect: second },
+    ];
+    const { rerender } = render(<TuiActions actions={actions} />);
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(isActive(/second/)).toBe(true);
+
+    rerender(
+      <TuiActions actions={[actions[0], { ...actions[1], disabled: true }]} />,
+    );
+    expect(isActive(/first/)).toBe(true);
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(second).not.toHaveBeenCalled();
+    expect(first).toHaveBeenCalledOnce();
+  });
+
   it("tracks focus and clicks from the pointer", () => {
     const onSelect = vi.fn();
     render(

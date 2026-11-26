@@ -3,13 +3,14 @@ import type { ThemeMode } from "@/lib/theme";
 export { isThemeMode, THEME_MODES } from "@/lib/theme";
 export type { ThemeMode } from "@/lib/theme";
 
-export type TuiView = "projects" | "contact";
+export type TuiView = "projects" | "contact" | "cv";
 export type ComponentView = "about" | "help";
 
 export type CommandResult =
   | { type: "output"; text: string; isError: boolean }
   | { type: "component"; view: ComponentView }
   | { type: "tui"; view: TuiView }
+  | { type: "download"; url: string; filename: string; text: string }
   | { type: "theme"; mode: ThemeMode; text: string }
   | { type: "reboot"; text: string }
   | { type: "shutdown"; delayMs: number; text: string }

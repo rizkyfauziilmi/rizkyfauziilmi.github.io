@@ -97,6 +97,29 @@ describe("sessionReducer", () => {
     expect(state.activeTui).toBeNull();
   });
 
+  it("records the download status without opening a tui", () => {
+    const state = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "cv --download",
+      result: {
+        type: "download",
+        url: "/cv.pdf",
+        filename: "cv.pdf",
+        text: "Downloading rizky-fauzi-ilmi-cv.pdf — updated 26 Nov 2026. Progress: see toast.",
+      },
+    });
+
+    expect(state.activeTui).toBeNull();
+    expect(state.entries).toEqual([
+      { id: 0, kind: "input", text: "cv --download" },
+      {
+        id: 1,
+        kind: "output",
+        text: "Downloading rizky-fauzi-ilmi-cv.pdf — updated 26 Nov 2026. Progress: see toast.",
+      },
+    ]);
+  });
+
   it("clears the active tui when halted", () => {
     const active = sessionReducer(createInitialSession(), {
       type: "submit",

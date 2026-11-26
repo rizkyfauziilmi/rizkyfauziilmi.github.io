@@ -1,4 +1,5 @@
 export { ContactTui } from "./contact-tui";
+export { CvTui } from "./cv-tui";
 export {
   contactTuiReducer,
   createInitialContactTuiState,

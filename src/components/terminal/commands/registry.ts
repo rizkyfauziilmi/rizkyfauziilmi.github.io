@@ -1,3 +1,4 @@
+import { CV, formatCvUpdatedAt } from "../data";
 import { buildFetchOutput } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
@@ -72,6 +73,49 @@ const FETCH_COMMAND: CommandDefinition = {
   }),
 };
 
+const DOWNLOAD_FLAG = "--download";
+
+function runCvCommand(name: string, args: string[]): CommandResult {
+  if (args.length === 0) return { type: "tui", view: "cv" };
+
+  if (args.length === 1 && args[0] === DOWNLOAD_FLAG) {
+    return {
+      type: "download",
+      url: CV.pdfUrl,
+      filename: CV.filename,
+      text: `Downloading ${CV.filename} — updated ${formatCvUpdatedAt(CV.updatedAt)}. Progress: see toast.`,
+    };
+  }
+
+  return {
+    type: "output",
+    text: `(error) ${name}: expected '${DOWNLOAD_FLAG}'...`,
+    isError: true,
+  };
+}
+
+function createCvCommand(
+  name: string,
+  description: string,
+  suggestInAbout = false,
+): CommandDefinition {
+  return {
+    name,
+    description,
+    usageArgs: "[--download]",
+    flags: [
+      { name: DOWNLOAD_FLAG, description: "Download the PDF immediately" },
+    ],
+    examples: [name, `${name} ${DOWNLOAD_FLAG}`],
+    acceptsArgs: true,
+    ...(suggestInAbout ? { suggestInAbout: true } : {}),
+    run: (args) => runCvCommand(name, args),
+  };
+}
+
+const CV_COMMAND = createCvCommand("cv", "View and download my CV", true);
+const RESUME_COMMAND = createCvCommand("resume", "Alias for cv");
+
 const CONTACT_COMMAND: CommandDefinition = {
   name: "contact",
   description: "Find me and get in touch",
@@ -116,6 +160,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     run: () => ({ type: "tui", view: "projects" }),
   },
   CONTACT_COMMAND,
+  CV_COMMAND,
+  RESUME_COMMAND,
   {
     name: "reboot",
     description: "Reboot the terminal (reload the page)",

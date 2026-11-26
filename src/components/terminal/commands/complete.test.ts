@@ -106,6 +106,14 @@ describe("completeCommand", () => {
     });
   });
 
+  it("offers the cv download flag from the registry", () => {
+    expect(completeCommand("cv -", 4, COMMAND_CATALOG).suggestions).toEqual([
+      "--download",
+      "--help",
+      "-h",
+    ]);
+  });
+
   it("includes hidden runnable commands from the registry", () => {
     expect(completeCommand("s", 1, COMMAND_CATALOG).suggestions).toContain(
       "sudo",

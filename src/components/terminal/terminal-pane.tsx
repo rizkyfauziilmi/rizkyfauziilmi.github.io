@@ -13,13 +13,14 @@ import type { TuiView } from "./commands";
 import { PROMPT } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
 import { CommandSuggestions, HaltedScreen, TerminalEntryView } from "./output";
-import { ContactTui, ProjectsTui } from "./tui";
+import { ContactTui, CvTui, ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
 
 const TUI_VIEWS: Record<TuiView, ComponentType<{ onExit: () => void }>> = {
   projects: ProjectsTui,
   contact: ContactTui,
+  cv: CvTui,
 };
 
 interface TerminalPaneProps {

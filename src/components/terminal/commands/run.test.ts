@@ -45,6 +45,36 @@ describe("runCommand", () => {
     }
   });
 
+  it("opens the cv viewer, downloads with --download, and validates arguments", () => {
+    expect(runCommand("cv")).toEqual({ type: "tui", view: "cv" });
+    expect(runCommand("resume")).toEqual({ type: "tui", view: "cv" });
+
+    const expectedDownload = {
+      type: "download" as const,
+      url: "/cv.pdf",
+      filename: "rizky-fauzi-ilmi-cv.pdf",
+      text: "Downloading rizky-fauzi-ilmi-cv.pdf — updated 26 Nov 2026. Progress: see toast.",
+    };
+    expect(runCommand("cv --download")).toEqual(expectedDownload);
+    expect(runCommand("resume --download")).toEqual(expectedDownload);
+
+    for (const command of ["cv --bogus", "resume extra"]) {
+      const result = runCommand(command);
+      expect(result.type).toBe("output");
+      if (result.type === "output") {
+        expect(result.text).toContain("expected '--download'");
+        expect(result.isError).toBe(true);
+      }
+    }
+
+    const help = runCommand("cv -h");
+    expect(help.type).toBe("output");
+    if (help.type === "output") {
+      expect(help.text).toContain("Usage: cv [--download]");
+      expect(help.text).toContain("Download the PDF immediately");
+    }
+  });
+
   it.each(["about -h", "about --help", "about help"])(
     "shows per-command help for %s",
     (command) => {
