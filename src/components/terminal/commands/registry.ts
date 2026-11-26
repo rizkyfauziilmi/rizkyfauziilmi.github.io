@@ -72,6 +72,13 @@ const FETCH_COMMAND: CommandDefinition = {
   }),
 };
 
+const CONTACT_COMMAND: CommandDefinition = {
+  name: "contact",
+  description: "Find me and get in touch",
+  suggestInAbout: true,
+  run: () => ({ type: "tui", view: "contact" }),
+};
+
 // Commands reject extra arguments unless they explicitly opt in with acceptsArgs.
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
@@ -105,8 +112,10 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "projects",
     description: "Browse projects in an interactive TUI",
+    suggestInAbout: true,
     run: () => ({ type: "tui", view: "projects" }),
   },
+  CONTACT_COMMAND,
   {
     name: "reboot",
     description: "Reboot the terminal (reload the page)",

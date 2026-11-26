@@ -26,6 +26,25 @@ describe("runCommand", () => {
     }
   });
 
+  it("opens the contact TUI and rejects stray arguments", () => {
+    expect(runCommand("contact")).toEqual({ type: "tui", view: "contact" });
+
+    const result = runCommand("contact extra");
+    expect(result.type).toBe("output");
+    if (result.type === "output") {
+      expect(result.text).toBe(
+        "(error) contact: command does not accept arguments...",
+      );
+    }
+
+    const help = runCommand("contact -h");
+    expect(help.type).toBe("output");
+    if (help.type === "output") {
+      expect(help.text).toContain("Find me and get in touch");
+      expect(help.text).toContain("Usage: contact");
+    }
+  });
+
   it.each(["about -h", "about --help", "about help"])(
     "shows per-command help for %s",
     (command) => {

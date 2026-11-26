@@ -1,6 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+import { COMMAND_DEFINITIONS } from "../commands/registry";
 import { buildAboutOutput, PORTFOLIO } from "../data";
+
+const suggestions = COMMAND_DEFINITIONS.filter(
+  (command) => !command.hidden && command.suggestInAbout,
+).map((command) => command.name);
 
 export function AboutOutput() {
   return (
@@ -16,7 +21,7 @@ export function AboutOutput() {
         </div>
       </div>
       <div className="text-sm leading-5 whitespace-pre-wrap">
-        {buildAboutOutput()}
+        {buildAboutOutput(suggestions)}
       </div>
     </div>
   );

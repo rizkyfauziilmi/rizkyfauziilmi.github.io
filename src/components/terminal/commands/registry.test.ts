@@ -16,6 +16,22 @@ function outputFor(name: string, args: string[]): string {
   return result.text;
 }
 
+describe("about suggestions", () => {
+  it("flags projects and contact but never about", () => {
+    expect(findCommand("projects").suggestInAbout).toBe(true);
+    expect(findCommand("contact").suggestInAbout).toBe(true);
+    expect(findCommand("about").suggestInAbout).toBeUndefined();
+  });
+
+  it("does not suggest hidden commands", () => {
+    for (const command of COMMAND_DEFINITIONS) {
+      if (command.hidden) {
+        expect(command.suggestInAbout).toBeUndefined();
+      }
+    }
+  });
+});
+
 describe("hidden easter eggs", () => {
   it("marks fastfetch, sudo, rm and whoami as hidden", () => {
     for (const name of ["fastfetch", "sudo", "rm", "whoami"]) {

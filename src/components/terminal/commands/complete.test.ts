@@ -99,6 +99,13 @@ describe("completeCommand", () => {
     });
   });
 
+  it("completes the contact command from the registry", () => {
+    expect(completeCommand("con", 3, COMMAND_CATALOG)).toMatchObject({
+      value: "contact ",
+      suggestions: [],
+    });
+  });
+
   it("includes hidden runnable commands from the registry", () => {
     expect(completeCommand("s", 1, COMMAND_CATALOG).suggestions).toContain(
       "sudo",

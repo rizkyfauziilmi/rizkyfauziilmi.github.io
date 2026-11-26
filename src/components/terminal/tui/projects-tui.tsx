@@ -19,6 +19,7 @@ export function ProjectsTui({ onExit }: { onExit: () => void }) {
       projects={PROJECTS}
       selectedIndex={selectedIndex}
       onSelect={selectAt}
+      onExit={onExit}
     />
   );
 }

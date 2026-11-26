@@ -34,6 +34,7 @@ Open the URL printed by Vite. Production output goes to `dist/`. `pnpm install` 
 | `help`                          | List public commands and tips                  |
 | `neofetch`                      | Show system and portfolio info                 |
 | `projects`                      | Browse projects in an interactive TUI          |
+| `contact`                       | Browse contact channels in an interactive TUI  |
 | `reboot`                        | Reload the page                                |
 | `shutdown <now\|+N\|HH:MM\|-c>` | Close now, schedule (`+5`, `23:30`), or cancel |
 | `theme <dark\|light\|system>`   | Switch the color theme                         |
@@ -45,7 +46,7 @@ Run `help` or `<command> -h` for details; `echo` and hidden commands are excepti
 - `Tab` completes commands, flags, and argument values; press again to cycle matches, `Shift+Tab` to go back.
 - `Enter` accepts a highlighted match; press again to run it. `Escape` cancels it.
 - `Ctrl+?` (or `Ctrl+/`) opens help. `↑`/`↓` browse history; type a prefix then `↑` to filter it.
-- In the `projects` TUI: `↑`/`↓` or `j`/`k` move, `Enter` opens detail, `Esc`/`q` closes it, and `q` in the list or `Ctrl+C` anywhere exits.
+- In the `projects` and `contact` TUIs: `↑`/`↓` or `j`/`k` move, `Enter` opens detail. In detail, `←`/`→` or `h`/`l` switch actions, `Enter` activates, `Esc`/`q` goes back, and `q` in the list or `Ctrl+C` anywhere exits. Detail actions copy the value (success toast) or open the link. Header buttons go back: detail → list, list → terminal.
 
 ## Stack
 
