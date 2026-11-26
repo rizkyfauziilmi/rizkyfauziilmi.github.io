@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer } from "react";
 
 import type { Project } from "../data";
+import { isTypingTarget } from "./keyboard";
 
 export type ProjectsTuiState = {
   selectedIndex: number;
@@ -49,15 +50,6 @@ export function projectsTuiReducer(
     case "close-detail":
       return state.expandedId === null ? state : { ...state, expandedId: null };
   }
-}
-
-function isTypingTarget(target: EventTarget | null) {
-  // Keydown can originate from window itself, which is not an Element.
-  if (!(target instanceof Element)) return false;
-  return Boolean(
-    (target as HTMLElement).isContentEditable ||
-    target.closest("input, textarea, select, [contenteditable='true']"),
-  );
 }
 
 export function useProjectsTui(projects: Project[], onExit: () => void) {

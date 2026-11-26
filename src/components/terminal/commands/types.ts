@@ -3,7 +3,7 @@ import type { ThemeMode } from "@/lib/theme";
 export { isThemeMode, THEME_MODES } from "@/lib/theme";
 export type { ThemeMode } from "@/lib/theme";
 
-export type TuiView = "projects";
+export type TuiView = "projects" | "contact";
 export type ComponentView = "about" | "help";
 
 export type CommandResult =
@@ -49,5 +49,8 @@ export type CommandDefinition = {
   acceptsArgs?: boolean;
   // Hidden commands stay runnable but are omitted from help, including -h.
   hidden?: boolean;
+  // Commands suggested by the about card as ways to get to know the owner.
+  // About itself is intentionally not flagged, so it never lists itself.
+  suggestInAbout?: boolean;
   run: (args: string[], context: CommandContext) => CommandResult;
 };

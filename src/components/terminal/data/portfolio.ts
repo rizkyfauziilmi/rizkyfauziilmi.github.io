@@ -9,13 +9,12 @@ export const PORTFOLIO = {
     "I use Git and work closely with teams to ship applications",
     "that are fast, maintainable, and built to scale.",
   ],
-  availableCommands: ["projects", "contact"],
 };
 
-export function buildAboutOutput() {
+export function buildAboutOutput(suggestions: readonly string[]) {
   return [
     ...PORTFOLIO.bio,
     "",
-    `Get to know me better with this available commands: [${PORTFOLIO.availableCommands.join(", ")}]`,
+    `Get to know me better with these commands: [${suggestions.join(", ")}]`,
   ].join("\n");
 }

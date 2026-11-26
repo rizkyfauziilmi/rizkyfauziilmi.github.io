@@ -83,6 +83,20 @@ describe("sessionReducer", () => {
     expect(state.activeTui).toBeNull();
   });
 
+  it("activates the contact tui without adding an output line", () => {
+    let state = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "contact",
+      result: { type: "tui", view: "contact" },
+    });
+
+    expect(state.activeTui).toBe("contact");
+    expect(state.entries).toEqual([{ id: 0, kind: "input", text: "contact" }]);
+
+    state = sessionReducer(state, { type: "exit-tui" });
+    expect(state.activeTui).toBeNull();
+  });
+
   it("clears the active tui when halted", () => {
     const active = sessionReducer(createInitialSession(), {
       type: "submit",

@@ -3,17 +3,24 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  type ComponentType,
   type RefObject,
 } from "react";
 
 import { InputGroup } from "@/components/ui/input-group";
 import { useTerminalShell } from "@/hooks";
+import type { TuiView } from "./commands";
 import { PROMPT } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
 import { CommandSuggestions, HaltedScreen, TerminalEntryView } from "./output";
-import { ProjectsTui } from "./tui";
+import { ContactTui, ProjectsTui } from "./tui";
 
 const DEFAULT_PLACEHOLDER = "type 'help' or ctrl+? to see command";
+
+const TUI_VIEWS: Record<TuiView, ComponentType<{ onExit: () => void }>> = {
+  projects: ProjectsTui,
+  contact: ContactTui,
+};
 
 interface TerminalPaneProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
@@ -64,6 +71,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
   }, [scrollToEnd]);
 
   const showsTui = !isHalted && activeTui !== null;
+  const ActiveTui = activeTui ? TUI_VIEWS[activeTui] : null;
 
   return (
     // min-h-0 lets the pane shrink in the flex column; scrolling stays here
@@ -77,8 +85,8 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
     >
       {isHalted ? (
         <HaltedScreen onPowerOn={powerOn} />
-      ) : activeTui === "projects" ? (
-        <ProjectsTui onExit={leaveTui} />
+      ) : ActiveTui ? (
+        <ActiveTui onExit={leaveTui} />
       ) : (
         <div className="flex flex-col gap-1">
           {entries.map((entry) => (

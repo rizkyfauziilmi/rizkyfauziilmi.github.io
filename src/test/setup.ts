@@ -46,6 +46,11 @@ if (!globalThis.ResizeObserver) {
   } as unknown as typeof ResizeObserver;
 }
 
+// Base UI ScrollArea checks running animations after a deferred timeout.
+if (!Element.prototype.getAnimations) {
+  Element.prototype.getAnimations = () => [];
+}
+
 afterEach(() => {
   cleanup();
   localStorage.clear();

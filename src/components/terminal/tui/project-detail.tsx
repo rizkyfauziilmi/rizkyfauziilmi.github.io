@@ -1,8 +1,12 @@
+import { Copy } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/toast";
 import type { Project } from "../data";
+import { TuiActions } from "./tui-actions";
+import { TuiHints } from "./tui-hints";
 
 interface ProjectDetailProps {
   project: Project;
@@ -10,6 +14,37 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
+  const copyUrl = async () => {
+    if (!project.url) return;
+    try {
+      await navigator.clipboard.writeText(project.url);
+      toast.add({
+        type: "success",
+        title: "Copied to clipboard",
+        description: project.url,
+        timeout: 2500,
+      });
+    } catch {
+      toast.add({
+        type: "error",
+        title: "Copy failed",
+        description: "Select the URL and copy it manually.",
+      });
+    }
+  };
+
+  const actions = project.url
+    ? [
+        {
+          id: "copy",
+          label: "copy URL",
+          icon: <Copy aria-hidden />,
+          onSelect: copyUrl,
+        },
+        { id: "open", label: "open repository ↗", href: project.url },
+      ]
+    : [];
+
   return (
     <section
       data-slot="projects-tui"
@@ -18,9 +53,12 @@ export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
       className="flex h-full min-h-0 flex-col gap-3 py-1"
     >
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
-        <div className="font-mono text-sm">
-          <span className="text-primary">~/projects/</span>
-          <span>{project.title}</span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="font-mono text-sm">
+            <span className="text-primary">~/projects/</span>
+            <span>{project.title}</span>
+          </div>
+          <TuiHints variant="detail" />
         </div>
         <Button
           type="button"
@@ -29,10 +67,6 @@ export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
           onClick={onBack}
           data-tui-interactive=""
         >
-          <KbdGroup>
-            <Kbd variant="tui">Esc</Kbd>
-            <Kbd variant="tui">q</Kbd>
-          </KbdGroup>
           back to list
         </Button>
       </header>
@@ -66,18 +100,7 @@ export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
               </Badge>
             ))}
           </div>
-          {project.url && (
-            <Button
-              render={<a href={project.url} target="_blank" rel="noreferrer" />}
-              variant="tui-link"
-              size="tui-link"
-              nativeButton={false}
-              data-tui-interactive=""
-              className="w-fit"
-            >
-              open repository ↗
-            </Button>
-          )}
+          <TuiActions actions={actions} label={`${project.title} actions`} />
         </article>
       </ScrollArea>
     </section>
