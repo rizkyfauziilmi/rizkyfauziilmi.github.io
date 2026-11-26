@@ -8,7 +8,7 @@ import {
 import { Toaster } from "@/components/ui/toast";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Project } from "../data";
+import type { Project } from "../../data";
 import { ProjectDetail } from "./project-detail";
 import { ProjectsList } from "./projects-list";
 

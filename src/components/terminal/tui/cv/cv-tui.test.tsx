@@ -1,10 +1,10 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { downloadCv } from "../download";
+import { downloadCv } from "../../download";
 import { CvTui } from "./cv-tui";
 
-vi.mock("../download", () => ({
+vi.mock("../../download", () => ({
   downloadCv: vi.fn(() => Promise.resolve()),
 }));
 

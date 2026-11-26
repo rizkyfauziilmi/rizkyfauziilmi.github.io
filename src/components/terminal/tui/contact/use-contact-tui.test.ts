@@ -3,7 +3,7 @@ import { GitHub } from "@/components/svgs/github";
 import { Gmail } from "@/components/svgs/gmail";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ContactChannel } from "../data";
+import type { ContactChannel } from "../../data";
 import {
   contactTuiReducer,
   createInitialContactTuiState,

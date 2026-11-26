@@ -1,4 +1,4 @@
-import { CONTACT_CHANNELS } from "../data";
+import { CONTACT_CHANNELS } from "../../data";
 import { ContactDetail } from "./contact-detail";
 import { ContactList } from "./contact-list";
 import { useContactTui } from "./use-contact-tui";

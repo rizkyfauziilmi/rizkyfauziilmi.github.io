@@ -1,15 +1,15 @@
-export { ContactTui } from "./contact-tui";
-export { CvTui } from "./cv-tui";
 export {
   contactTuiReducer,
+  ContactTui,
   createInitialContactTuiState,
   type ContactTuiAction,
   type ContactTuiState,
-} from "./use-contact-tui";
-export { ProjectsTui } from "./projects-tui";
+} from "./contact";
+export { CvTui } from "./cv";
 export {
   createInitialTuiState,
+  ProjectsTui,
   projectsTuiReducer,
   type ProjectsTuiAction,
   type ProjectsTuiState,
-} from "./use-projects-tui";
+} from "./projects";

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer } from "react";
 
-import type { ContactChannel } from "../data";
-import { isTypingTarget } from "./keyboard";
+import type { ContactChannel } from "../../data";
+import { isTypingTarget } from "../shared";
 
 export type ContactTuiState = {
   selectedIndex: number;

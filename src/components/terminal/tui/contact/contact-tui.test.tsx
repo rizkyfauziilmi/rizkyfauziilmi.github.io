@@ -10,7 +10,7 @@ import { Gmail } from "@/components/svgs/gmail";
 import { Toaster } from "@/components/ui/toast";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ContactChannel } from "../data";
+import type { ContactChannel } from "../../data";
 import { ContactDetail } from "./contact-detail";
 import { ContactList } from "./contact-list";
 

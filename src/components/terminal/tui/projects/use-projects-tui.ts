@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer } from "react";
 
-import type { Project } from "../data";
-import { isTypingTarget } from "./keyboard";
+import type { Project } from "../../data";
+import { isTypingTarget } from "../shared";
 
 export type ProjectsTuiState = {
   selectedIndex: number;

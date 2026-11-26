@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/item";
 import { Kbd } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ContactChannel } from "../data";
-import { TuiHints } from "./tui-hints";
+import type { ContactChannel } from "../../data";
+import { TuiHints } from "../shared";
 
 interface ContactListProps {
   channels: ContactChannel[];

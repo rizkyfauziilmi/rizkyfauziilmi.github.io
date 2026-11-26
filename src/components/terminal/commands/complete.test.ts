@@ -6,7 +6,7 @@ import {
   getCompletionSpan,
   type CompletionCatalog,
 } from "./complete";
-import { COMMAND_CATALOG } from "./index";
+import { COMMAND_CATALOG } from "./catalog";
 import type { CommandDefinition } from "./types";
 
 const command = (
