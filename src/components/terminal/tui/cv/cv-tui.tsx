@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Maximize2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CV, formatCvUpdatedAt } from "../data";
-import { downloadCv } from "../download";
-import { isTypingTarget } from "./keyboard";
-import { TuiActions, type TuiAction } from "./tui-actions";
-import { TuiHints } from "./tui-hints";
+import { CV, formatCvUpdatedAt } from "../../data";
+import { downloadCv } from "../../download";
+import {
+  isTypingTarget,
+  TuiActions,
+  type TuiAction,
+  TuiHints,
+} from "../shared";
 
 export function CvTui({ onExit }: { onExit: () => void }) {
   const viewerRef = useRef<HTMLDivElement>(null);

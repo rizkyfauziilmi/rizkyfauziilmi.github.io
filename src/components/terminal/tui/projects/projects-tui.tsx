@@ -1,4 +1,4 @@
-import { PROJECTS } from "../data";
+import { PROJECTS } from "../../data";
 import { ProjectDetail } from "./project-detail";
 import { ProjectsList } from "./projects-list";
 import { useProjectsTui } from "./use-projects-tui";

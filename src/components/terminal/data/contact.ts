@@ -1,7 +1,4 @@
-import { GitHub } from "@/components/svgs/github";
-import { Gmail } from "@/components/svgs/gmail";
-import { Instagram } from "@/components/svgs/instagram";
-import { LinkedIn } from "@/components/svgs/linkedin";
+import { GitHub, Gmail, Instagram, LinkedIn } from "@/components/svgs";
 import type { ComponentType, SVGProps } from "react";
 
 type ContactIcon = ComponentType<SVGProps<SVGSVGElement>>;

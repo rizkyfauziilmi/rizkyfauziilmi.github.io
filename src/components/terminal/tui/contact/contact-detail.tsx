@@ -3,9 +3,8 @@ import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/toast";
-import type { ContactChannel } from "../data";
-import { TuiActions } from "./tui-actions";
-import { TuiHints } from "./tui-hints";
+import type { ContactChannel } from "../../data";
+import { TuiActions, TuiHints } from "../shared";
 
 interface ContactDetailProps {
   channel: ContactChannel;

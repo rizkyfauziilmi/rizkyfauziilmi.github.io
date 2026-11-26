@@ -1,9 +1,8 @@
 import { act, fireEvent, renderHook } from "@testing-library/react";
-import { GitHub } from "@/components/svgs/github";
-import { Gmail } from "@/components/svgs/gmail";
+import { GitHub, Gmail } from "@/components/svgs";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ContactChannel } from "../data";
+import type { ContactChannel } from "../../data";
 import {
   contactTuiReducer,
   createInitialContactTuiState,

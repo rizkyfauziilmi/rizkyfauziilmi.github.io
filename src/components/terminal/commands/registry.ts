@@ -1,12 +1,10 @@
+import { isThemeMode } from "@/lib/theme";
+
 import { CV, formatCvUpdatedAt } from "../data";
 import { buildFetchOutput } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
-import {
-  isThemeMode,
-  type CommandDefinition,
-  type CommandResult,
-} from "./types";
+import type { CommandDefinition, CommandResult } from "./types";
 
 const SHUTDOWN_COMMAND: CommandDefinition = {
   name: "shutdown",

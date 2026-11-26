@@ -4,9 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/toast";
-import type { Project } from "../data";
-import { TuiActions } from "./tui-actions";
-import { TuiHints } from "./tui-hints";
+import type { Project } from "../../data";
+import { TuiActions, TuiHints } from "../shared";
 
 interface ProjectDetailProps {
   project: Project;

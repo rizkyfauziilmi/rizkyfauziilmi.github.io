@@ -1,6 +1,5 @@
 import type { ThemeMode } from "@/lib/theme";
 
-export { isThemeMode, THEME_MODES } from "@/lib/theme";
 export type { ThemeMode } from "@/lib/theme";
 
 export type TuiView = "projects" | "contact" | "cv";

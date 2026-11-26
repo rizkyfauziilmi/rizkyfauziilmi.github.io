@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createDefaultCommandContext } from "./fetch";
-import { runCommand } from "./index";
+import { runCommand } from "./run";
 import { SHUTDOWN_ERROR } from "./shutdown";
 
 describe("runCommand", () => {
