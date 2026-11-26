@@ -43,6 +43,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
     hasSelection,
     acceptCompletion,
     clearSuggestions,
+    interruptLine,
     runValue,
     runHelp,
     leaveTui,
@@ -106,6 +107,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
               hasCompletionSelection={hasSelection}
               onSubmit={runValue}
               onHelp={runHelp}
+              onInterrupt={interruptLine}
               placeholder={DEFAULT_PLACEHOLDER}
             />
           </InputGroup>

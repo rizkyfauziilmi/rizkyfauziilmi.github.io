@@ -16,6 +16,7 @@ interface BlockCaretInputProps {
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onHelp: () => void;
+  onInterrupt: () => void;
   onComplete: (backward?: boolean) => void;
   onAcceptCompletion: () => boolean;
   onCancelCompletion: () => void;
@@ -30,6 +31,7 @@ export function BlockCaretInput({
   onHistoryNavigate,
   onSubmit,
   onHelp,
+  onInterrupt,
   onComplete,
   onAcceptCompletion,
   onCancelCompletion,
@@ -41,6 +43,7 @@ export function BlockCaretInput({
   const handleKeyDown = useCommandInputKeys({
     onComplete,
     onHelp,
+    onInterrupt,
     onHistoryNavigate,
     onSubmit,
     onAcceptCompletion,

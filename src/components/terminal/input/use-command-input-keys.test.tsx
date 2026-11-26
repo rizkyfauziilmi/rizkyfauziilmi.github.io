@@ -9,6 +9,7 @@ type Options = Parameters<typeof useCommandInputKeys>[0];
 function setup(overrides: Partial<Options> = {}) {
   const onComplete = overrides.onComplete ?? vi.fn();
   const onHelp = overrides.onHelp ?? vi.fn();
+  const onInterrupt = overrides.onInterrupt ?? vi.fn();
   const onHistoryNavigate = overrides.onHistoryNavigate ?? vi.fn(() => true);
   const onSubmit = overrides.onSubmit ?? vi.fn();
   const onAcceptCompletion = overrides.onAcceptCompletion ?? vi.fn(() => false);
@@ -18,6 +19,7 @@ function setup(overrides: Partial<Options> = {}) {
     useCommandInputKeys({
       onComplete,
       onHelp,
+      onInterrupt,
       onHistoryNavigate,
       onSubmit,
       onAcceptCompletion,
@@ -30,6 +32,7 @@ function setup(overrides: Partial<Options> = {}) {
     ...hook,
     onComplete,
     onHelp,
+    onInterrupt,
     onHistoryNavigate,
     onSubmit,
     onAcceptCompletion,
@@ -106,6 +109,39 @@ describe("useCommandInputKeys", () => {
 
     expect(onHelp).toHaveBeenCalledTimes(1);
     expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("interrupts the line on Ctrl+C without submitting", () => {
+    const { result, onInterrupt, onSubmit } = setup();
+    const { event, preventDefault } = makeEvent("c", { ctrlKey: true });
+
+    act(() => result.current(event));
+
+    expect(onInterrupt).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("interrupts on uppercase Ctrl+C too", () => {
+    const { result, onInterrupt } = setup();
+    const { event } = makeEvent("C", { ctrlKey: true, shiftKey: true });
+
+    act(() => result.current(event));
+
+    expect(onInterrupt).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Ctrl+C during IME composition and leaves Cmd+C to the browser", () => {
+    const { result, onInterrupt } = setup();
+    const composing = makeEvent("c", { ctrlKey: true }, true);
+    const cmd = makeEvent("c", { metaKey: true });
+
+    act(() => result.current(composing.event));
+    act(() => result.current(cmd.event));
+
+    expect(onInterrupt).not.toHaveBeenCalled();
+    expect(composing.preventDefault).not.toHaveBeenCalled();
+    expect(cmd.preventDefault).not.toHaveBeenCalled();
   });
 
   it("navigates history when the handler consumes the arrow key", () => {

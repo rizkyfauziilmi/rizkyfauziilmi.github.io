@@ -15,6 +15,7 @@ function renderInput() {
       onHistoryNavigate={() => false}
       onSubmit={() => {}}
       onHelp={() => {}}
+      onInterrupt={() => {}}
       onComplete={() => {}}
       onAcceptCompletion={() => false}
       onCancelCompletion={() => {}}

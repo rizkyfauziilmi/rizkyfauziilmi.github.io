@@ -50,6 +50,24 @@ describe("sessionReducer", () => {
     expect(state.entries.at(-1)?.text).toBe("Shutdown cancelled.");
   });
 
+  it("keeps an interrupted line without running or recalling it", () => {
+    let state = createInitialSession();
+    state = sessionReducer(state, {
+      type: "submit",
+      command: "help",
+      result: output("help text"),
+    });
+    state = sessionReducer(state, { type: "interrupt", text: "asdf^C" });
+
+    expect(state.entries).toEqual([
+      { id: 0, kind: "input", text: "help" },
+      { id: 1, kind: "output", text: "help text", isError: false },
+      { id: 2, kind: "input", text: "asdf^C" },
+    ]);
+    expect(state.commands).toEqual(["help"]);
+    expect(state.nextEntryId).toBe(3);
+  });
+
   it("ignores submissions once halted", () => {
     const halted = sessionReducer(createInitialSession(), { type: "halt" });
     const next = sessionReducer(halted, {
@@ -59,6 +77,22 @@ describe("sessionReducer", () => {
     });
 
     expect(next).toBe(halted);
+  });
+
+  it("ignores interrupts when halted or inside a tui", () => {
+    const halted = sessionReducer(createInitialSession(), { type: "halt" });
+    expect(sessionReducer(halted, { type: "interrupt", text: "^C" })).toBe(
+      halted,
+    );
+
+    const inTui = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "projects",
+      result: { type: "tui", view: "projects" },
+    });
+    expect(sessionReducer(inTui, { type: "interrupt", text: "^C" })).toBe(
+      inTui,
+    );
   });
 
   it("activates and exits a tui without adding an output line", () => {

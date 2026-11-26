@@ -1,6 +1,7 @@
 import { useCallback, type RefObject } from "react";
 
 import { COMMAND_CATALOG } from "@/components/terminal/commands";
+import { INTERRUPT_MARKER } from "@/components/terminal/constants";
 import { useCommandCompletion } from "./use-command-completion";
 import {
   useCommandHistory,
@@ -21,8 +22,16 @@ export function useTerminalShell({
   inputRef,
   focusInput,
 }: UseTerminalShellOptions) {
-  const { entries, commands, submit, isHalted, activeTui, exitTui, powerOn } =
-    useTerminalHistory();
+  const {
+    entries,
+    commands,
+    submit,
+    interrupt,
+    isHalted,
+    activeTui,
+    exitTui,
+    powerOn,
+  } = useTerminalHistory();
   const {
     value,
     changeValue: setHistoryValue,
@@ -71,6 +80,13 @@ export function useTerminalShell({
     [submit, reset, clearSuggestions, focusInput],
   );
 
+  const interruptLine = useCallback(() => {
+    interrupt(`${value}${INTERRUPT_MARKER}`);
+    reset();
+    clearSuggestions();
+    focusInput();
+  }, [interrupt, value, reset, clearSuggestions, focusInput]);
+
   const runValue = useCallback(() => execute(value), [execute, value]);
   const runHelp = useCallback(() => execute("help"), [execute]);
   const leaveTui = useCallback(() => {
@@ -92,6 +108,7 @@ export function useTerminalShell({
     hasSelection,
     acceptCompletion,
     clearSuggestions,
+    interruptLine,
     runValue,
     runHelp,
     leaveTui,

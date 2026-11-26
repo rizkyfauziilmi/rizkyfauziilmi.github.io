@@ -2,6 +2,8 @@ export const APP_USER = "rizkyfauziilmi";
 export const APP_HOST = "portofolio";
 export const TERMINAL_TITLE = `${APP_USER}@${APP_HOST}`;
 export const PROMPT = `${TERMINAL_TITLE}:~$`;
+// A real shell echoes ^C at the interrupted line before starting a new prompt.
+export const INTERRUPT_MARKER = "^C";
 
 // min-h-[1lh] reserves one line box so wrapped lines never overlap the next entry.
 export const LINE_CLASSNAME =

@@ -19,6 +19,7 @@ export type SessionState = {
 
 export type SessionAction =
   | { type: "submit"; command: string; result: CommandResult }
+  | { type: "interrupt"; text: string }
   | { type: "exit-tui" }
   | { type: "halt" };
 
@@ -69,6 +70,19 @@ export function sessionReducer(
   state: SessionState,
   action: SessionAction,
 ): SessionState {
+  // Ctrl+C keeps the interrupted line on screen but never runs or recalls it.
+  if (action.type === "interrupt") {
+    if (state.phase === "halted" || state.activeTui !== null) return state;
+    return {
+      ...state,
+      entries: [
+        ...state.entries,
+        { id: state.nextEntryId, kind: "input", text: action.text },
+      ],
+      nextEntryId: state.nextEntryId + 1,
+    };
+  }
+
   if (action.type === "exit-tui") {
     return state.activeTui === null ? state : { ...state, activeTui: null };
   }
