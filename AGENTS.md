@@ -15,6 +15,11 @@
 - When you need API details or best practices for a library or framework, check the official docs shipped in `node_modules` first (for example `README.md`, `docs/`, and type declarations).
 - If the installed package has no usable docs, use the Context7 MCP instead of relying on memory or guessing.
 
+## Complex reasoning
+
+- When a task needs deliberate, multi-step reasoning (for example a non-obvious bug or competing design options), use the sequential-thinking MCP when it is available.
+- If the MCP is unavailable, continue with normal reasoning; do not force it for trivial changes.
+
 ## Documentation
 
 - Keep `README.md` accurate and up to date whenever commands, flags, scripts, tooling, or project structure change. Update it in the same change instead of waiting to be asked.
