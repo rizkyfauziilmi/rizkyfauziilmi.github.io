@@ -46,7 +46,7 @@ Run `help` or `<command> -h` for details; `echo` and hidden commands are excepti
 
 - `Tab` completes commands, flags, and argument values; press again to cycle matches, `Shift+Tab` to go back.
 - `Enter` accepts a highlighted match; press again to run it. `Escape` cancels it.
-- `Ctrl+?` (or `Ctrl+/`) opens help. `↑`/`↓` browse history; type a prefix then `↑` to filter it.
+- `Ctrl+?` (or `Ctrl+/`) opens help. `Ctrl+C` aborts the current line with `^C` and opens a new prompt; the command is not run or saved to history. `↑`/`↓` browse history; type a prefix then `↑` to filter it.
 - In the `projects` and `contact` TUIs: `↑`/`↓` or `j`/`k` move, `Enter` opens detail. In detail, `←`/`→` or `h`/`l` switch actions, `Enter` activates, `Esc`/`q` goes back, and `q` in the list or `Ctrl+C` anywhere exits. Detail actions copy the value (success toast) or open the link. Header buttons go back: detail → list, list → terminal.
 - The `cv`/`resume` TUI shows the PDF with a last-updated date: `←`/`→` or `h`/`l` select a button and `Enter` activates it, `F` toggles fullscreen, `D` downloads, `Esc`/`q` returns, and `Ctrl+C` exits. Downloads report progress in a toast; `cv --download` starts one immediately.
 

@@ -108,6 +108,23 @@ describe("TerminalPane", () => {
     expect(getHint(container)).toBeNull();
   });
 
+  it("opens a new prompt on Ctrl+C and keeps the interrupted line", () => {
+    const { container } = setup();
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    type(textarea, "asdf");
+    fireEvent.keyDown(textarea, { key: "c", ctrlKey: true });
+
+    expect(textarea.value).toBe("");
+    expect(container.textContent).toContain("asdf^C");
+    expect(container.textContent).not.toContain("command not found");
+    // The interrupted line keeps its prompt and the active prompt is still there.
+    expect(
+      container.querySelectorAll('[data-slot="input-group-addon"]'),
+    ).toHaveLength(2);
+    expect(screen.getByRole("textbox")).toBe(textarea);
+  });
+
   it("opens the cv TUI and returns to the prompt on q", () => {
     const { container } = setup();
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;

@@ -74,8 +74,18 @@ describe("HelpOutput", () => {
     const tabs = screen.getAllByText("Tab");
     expect(tabs.length).toBeGreaterThan(0);
     expect(tabs[0].tagName).toBe("KBD");
-    expect(screen.getByText("Ctrl").tagName).toBe("KBD");
+    for (const ctrl of screen.getAllByText("Ctrl")) {
+      expect(ctrl.tagName).toBe("KBD");
+    }
     expect(screen.getByText("Enter").tagName).toBe("KBD");
+  });
+
+  it("renders the Ctrl+C interrupt tip", () => {
+    render(<HelpOutput />);
+
+    expect(
+      screen.getByText(/aborts the line and opens a new prompt/),
+    ).toBeTruthy();
   });
 
   it("renders the Tab completion tips", () => {

@@ -5,6 +5,7 @@ import type { HistoryDirection } from "@/hooks";
 interface UseCommandInputKeysOptions {
   onComplete: (backward?: boolean) => void;
   onHelp: () => void;
+  onInterrupt: () => void;
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
   onAcceptCompletion: () => boolean;
@@ -16,6 +17,7 @@ interface UseCommandInputKeysOptions {
 export function useCommandInputKeys({
   onComplete,
   onHelp,
+  onInterrupt,
   onHistoryNavigate,
   onSubmit,
   onAcceptCompletion,
@@ -50,6 +52,19 @@ export function useCommandInputKeys({
         return;
       }
 
+      // Ctrl+C interrupts the line like a real shell: keep what was typed on
+      // screen and move to a fresh prompt without running the command.
+      if (
+        event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === "c"
+      ) {
+        event.preventDefault();
+        onInterrupt();
+        return;
+      }
+
       if (event.key === "Escape" && hasCompletionSelection) {
         event.preventDefault();
         onCancelCompletion();
@@ -80,6 +95,7 @@ export function useCommandInputKeys({
     [
       onComplete,
       onHelp,
+      onInterrupt,
       onHistoryNavigate,
       onSubmit,
       onAcceptCompletion,

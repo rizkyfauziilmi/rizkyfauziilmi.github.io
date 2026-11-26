@@ -37,6 +37,7 @@ export const HELP_TIPS: HelpTipPart[][] = [
   ],
   [key("Enter"), text(" inserts the selected match; press again to run")],
   [key("Ctrl"), key("?"), text(" shows this menu")],
+  [key("Ctrl"), key("C"), text(" aborts the line and opens a new prompt")],
   [key("↑"), key("↓"), text(" browse commands from your history")],
   [
     text("type a prefix (e.g. th), then "),

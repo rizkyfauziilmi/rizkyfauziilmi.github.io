@@ -37,6 +37,32 @@ describe("useTerminalShell", () => {
     ).toBe(true);
   });
 
+  it("interrupts the line, marks it, and restores focus without running it", () => {
+    const { result, focusInput } = setup();
+
+    act(() => result.current.changeValue("asdf"));
+    act(() => result.current.interruptLine());
+
+    expect(result.current.value).toBe("");
+    expect(focusInput).toHaveBeenCalledTimes(1);
+    expect(result.current.entries).toEqual([
+      { id: 0, kind: "input", text: "asdf^C" },
+    ]);
+  });
+
+  it("clears active completions when interrupting", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("s"));
+    act(() => result.current.complete());
+    expect(result.current.suggestions).not.toEqual([]);
+
+    act(() => result.current.interruptLine());
+
+    expect(result.current.suggestions).toEqual([]);
+    expect(result.current.entries.at(-1)?.text).toBe("s^C");
+  });
+
   it("runs help through the same submit path", () => {
     const { result } = setup();
 

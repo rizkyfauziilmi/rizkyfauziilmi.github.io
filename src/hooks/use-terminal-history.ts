@@ -82,6 +82,10 @@ export function useTerminalHistory() {
     [session.phase, session.activeTui, theme, setTheme],
   );
 
+  const interrupt = useCallback(
+    (text: string) => dispatch({ type: "interrupt", text }),
+    [],
+  );
   const exitTui = useCallback(() => dispatch({ type: "exit-tui" }), []);
   const powerOn = useCallback(() => window.location.reload(), []);
 
@@ -91,6 +95,7 @@ export function useTerminalHistory() {
     isHalted: session.phase === "halted",
     activeTui: session.activeTui,
     submit,
+    interrupt,
     exitTui,
     powerOn,
   };
