@@ -108,6 +108,22 @@ describe("TerminalPane", () => {
     expect(getHint(container)).toBeNull();
   });
 
+  it("opens the cv TUI and returns to the prompt on q", () => {
+    const { container } = setup();
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    type(textarea, "cv");
+    fireEvent.keyDown(textarea, { key: "Enter" });
+
+    expect(container.querySelector('[data-slot="cv-tui"]')).not.toBeNull();
+    expect(screen.queryByRole("textbox")).toBeNull();
+
+    fireEvent.keyDown(window, { key: "q" });
+
+    expect(container.querySelector('[data-slot="cv-tui"]')).toBeNull();
+    expect(screen.getByRole("textbox")).toBeTruthy();
+  });
+
   it("opens the contact TUI and returns to the prompt on q", () => {
     const { container } = setup();
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;

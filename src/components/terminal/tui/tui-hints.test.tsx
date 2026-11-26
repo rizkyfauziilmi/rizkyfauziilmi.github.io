@@ -33,4 +33,21 @@ describe("TuiHints", () => {
     expect(hintText(container, "exit")).toContain("exit");
     expect(hintText(container, "exit")).toContain("CtrlC");
   });
+
+  it("shows viewer-specific keys in cv view", () => {
+    const { container } = render(<TuiHints variant="cv" />);
+
+    expect(container.querySelector('[data-hint="navigate"]')).toBeNull();
+    expect(hintText(container, "actions")).toContain("select action");
+    expect(hintText(container, "actions")).toContain("←");
+    expect(hintText(container, "actions")).toContain("→");
+    expect(hintText(container, "activate")).toContain("Enter");
+    expect(hintText(container, "fullscreen")).toContain("F");
+    expect(hintText(container, "fullscreen")).toContain("see in fullscreen");
+    expect(hintText(container, "download")).toContain("D");
+    expect(hintText(container, "download")).toContain("download PDF");
+    expect(hintText(container, "back")).toContain("back to terminal");
+    expect(hintText(container, "exit")).toContain("CtrlC");
+    expect(container.textContent).not.toContain("click to select");
+  });
 });

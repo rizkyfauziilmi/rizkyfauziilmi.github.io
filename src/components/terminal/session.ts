@@ -53,6 +53,8 @@ export function buildOutputEntry(
       };
     case "output":
       return { id, kind: "output", text: result.text, isError: result.isError };
+    case "download":
+      return { id, kind: "output", text: result.text };
     case "reboot":
     case "shutdown":
       return { id, kind: "output", text: result.text };

@@ -12,7 +12,12 @@ import {
   Loader2Icon,
 } from "lucide-react";
 
-const toast = ToastPrimitive.createToastManager();
+export type ToastData = {
+  // Optional progress for long-running work such as a file download.
+  progress?: number;
+};
+
+const toast = ToastPrimitive.createToastManager<ToastData>();
 
 function ToastProvider({ ...props }: ToastPrimitive.Provider.Props) {
   return <ToastPrimitive.Provider {...props} />;
@@ -182,6 +187,23 @@ function ToastList() {
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <ToastTitle />
           <ToastDescription />
+          {typeof toastItem.data?.progress === "number" && (
+            <div
+              role="progressbar"
+              aria-label="Download progress"
+              aria-valuenow={Math.round(toastItem.data.progress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className="h-full bg-primary transition-[width] duration-150"
+                style={{
+                  width: `${Math.min(100, Math.max(0, toastItem.data.progress))}%`,
+                }}
+              />
+            </div>
+          )}
         </div>
         <ToastAction />
         <ToastClose />

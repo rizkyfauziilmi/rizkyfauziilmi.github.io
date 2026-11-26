@@ -122,6 +122,27 @@ describe("ContactDetail", () => {
     expect(onBack).toHaveBeenCalledOnce();
   });
 
+  it("shows one loading toast until the clipboard copy settles", async () => {
+    let resolveCopy = () => {};
+    writeText.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveCopy = () => resolve();
+        }),
+    );
+    renderDetail(CHANNELS[0]);
+
+    fireEvent.click(screen.getByRole("button", { name: /copy text/i }));
+    await waitFor(() => expect(screen.getByText("Copying...")).toBeTruthy());
+
+    await act(async () => {
+      resolveCopy();
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Copied to clipboard")).toBeTruthy(),
+    );
+  });
+
   it("hides the open button when the URL is still a TODO", () => {
     renderDetail(CHANNELS[1]);
 

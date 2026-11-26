@@ -17,9 +17,11 @@ function outputFor(name: string, args: string[]): string {
 }
 
 describe("about suggestions", () => {
-  it("flags projects and contact but never about", () => {
+  it("flags projects, contact, and cv but never about or its alias", () => {
     expect(findCommand("projects").suggestInAbout).toBe(true);
     expect(findCommand("contact").suggestInAbout).toBe(true);
+    expect(findCommand("cv").suggestInAbout).toBe(true);
+    expect(findCommand("resume").suggestInAbout).toBeUndefined();
     expect(findCommand("about").suggestInAbout).toBeUndefined();
   });
 

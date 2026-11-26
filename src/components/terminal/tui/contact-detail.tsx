@@ -15,23 +15,24 @@ interface ContactDetailProps {
 export function ContactDetail({ channel, onBack }: ContactDetailProps) {
   const Icon = channel.icon;
 
-  const copyValue = async () => {
-    try {
-      await navigator.clipboard.writeText(channel.copyText);
-      toast.add({
-        type: "success",
-        title: "Copied to clipboard",
-        description: channel.copyText,
-        timeout: 2500,
-      });
-    } catch {
-      toast.add({
-        type: "error",
-        title: "Copy failed",
-        description: "Select the value and copy it manually.",
-      });
-    }
-  };
+  const copyValue = () =>
+    toast
+      .promise(navigator.clipboard.writeText(channel.copyText), {
+        loading: { type: "loading", title: "Copying..." },
+        success: {
+          type: "success",
+          title: "Copied to clipboard",
+          description: channel.copyText,
+          timeout: 2500,
+        },
+        error: {
+          type: "error",
+          title: "Copy failed",
+          description: "Select the value and copy it manually.",
+        },
+      })
+      // toast.promise already reports the failure in the toast.
+      .catch(() => {});
 
   const actions = [
     {

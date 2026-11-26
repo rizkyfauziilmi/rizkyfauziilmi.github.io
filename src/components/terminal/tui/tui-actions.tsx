@@ -9,6 +9,7 @@ export interface TuiAction {
   icon?: ReactNode;
   href?: string;
   onSelect?: () => void;
+  disabled?: boolean;
 }
 
 interface TuiActionsProps {
@@ -19,14 +20,29 @@ interface TuiActionsProps {
 export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const groupRef = useRef<HTMLDivElement>(null);
-  // Derive a valid index instead of resetting state when an action disappears.
-  const currentIndex = activeIndex < actions.length ? activeIndex : 0;
+  const enabledIndexes = actions.flatMap((action, index) =>
+    action.disabled ? [] : [index],
+  );
+  // Derive a valid index instead of resetting state when an action disappears
+  // or becomes disabled.
+  const currentIndex = enabledIndexes.includes(activeIndex)
+    ? activeIndex
+    : (enabledIndexes[0] ?? -1);
 
   useEffect(() => {
     const getActionElement = (index: number) =>
       groupRef.current?.querySelector<HTMLElement>(
         `[data-tui-action="${index}"]`,
       );
+
+    const move = (step: number) => {
+      const position = enabledIndexes.indexOf(currentIndex);
+      setActiveIndex(
+        enabledIndexes[
+          (position + step + enabledIndexes.length) % enabledIndexes.length
+        ],
+      );
+    };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (
@@ -35,7 +51,7 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
         event.metaKey ||
         event.ctrlKey ||
         isTypingTarget(event.target) ||
-        actions.length === 0
+        currentIndex < 0
       ) {
         return;
       }
@@ -44,13 +60,13 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
 
       if (key === "ArrowRight" || key === "l") {
         event.preventDefault();
-        setActiveIndex((currentIndex + 1) % actions.length);
+        move(1);
         return;
       }
 
       if (key === "ArrowLeft" || key === "h") {
         event.preventDefault();
-        setActiveIndex((currentIndex - 1 + actions.length) % actions.length);
+        move(-1);
         return;
       }
 
@@ -62,13 +78,14 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [actions.length, currentIndex]);
+  }, [currentIndex, enabledIndexes]);
 
   useEffect(() => {
+    if (currentIndex < 0) return;
     groupRef.current
       ?.querySelector<HTMLElement>(`[data-tui-action="${currentIndex}"]`)
       ?.focus();
-  }, [currentIndex, actions.length]);
+  }, [currentIndex, enabledIndexes]);
 
   return (
     <div
@@ -84,8 +101,11 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
           "data-tui-action": index,
           "data-tui-active": active ? "" : undefined,
           "aria-current": active ? ("true" as const) : undefined,
-          onFocus: () => setActiveIndex(index),
-          onClick: () => setActiveIndex(index),
+          "aria-disabled": action.disabled ? ("true" as const) : undefined,
+          "data-tui-interactive": "",
+          onFocus: () => {
+            if (!action.disabled) setActiveIndex(index);
+          },
         };
 
         return action.href ? (
@@ -96,6 +116,7 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
             variant="tui-link"
             size="tui-link"
             nativeButton={false}
+            tabIndex={action.disabled ? -1 : undefined}
             className={active ? "text-foreground underline" : undefined}
           >
             {action.icon}
@@ -108,6 +129,7 @@ export function TuiActions({ actions, label = "Actions" }: TuiActionsProps) {
             type="button"
             variant="tui"
             size="tui"
+            disabled={action.disabled}
             onClick={() => {
               setActiveIndex(index);
               action.onSelect?.();

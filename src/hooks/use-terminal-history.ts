@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer } from "react";
 
 import { useTheme } from "@/components/theme-context";
+import { downloadFile } from "@/components/terminal/download";
 import {
   runCommand,
   type CommandContext,
@@ -74,6 +75,7 @@ export function useTerminalHistory() {
       };
       const result = runCommand(command, context);
       if (result.type === "theme") setTheme(result.mode);
+      if (result.type === "download") void downloadFile(result);
       dispatch({ type: "submit", command, result });
       return true;
     },

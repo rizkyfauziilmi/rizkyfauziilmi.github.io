@@ -12,7 +12,7 @@ describe("AboutOutput", () => {
       (command) => !command.hidden && command.suggestInAbout,
     ).map((command) => command.name);
 
-    expect(expected).toEqual(["projects", "contact"]);
+    expect(expected).toEqual(["projects", "contact", "cv"]);
     expect(
       screen.getByText(new RegExp(`\\[${expected.join(", ")}\\]`)),
     ).toBeTruthy();

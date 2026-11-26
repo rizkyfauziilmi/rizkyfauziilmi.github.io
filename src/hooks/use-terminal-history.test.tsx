@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { downloadFile } from "@/components/terminal/download";
 import { useTerminalHistory } from "./use-terminal-history";
+
+vi.mock("@/components/terminal/download", () => ({
+  downloadFile: vi.fn(() => Promise.resolve()),
+}));
 
 const reload = vi.fn();
 const close = vi.fn();
@@ -104,6 +109,23 @@ describe("useTerminalHistory", () => {
     act(() => result.current.submit("neofetch"));
 
     expect(result.current.entries.at(-1)?.text).toContain("Theme:      dark");
+  });
+
+  it("starts the CV download without opening a tui", () => {
+    const { result } = renderHook(() => useTerminalHistory(), { wrapper });
+
+    act(() => result.current.submit("cv --download"));
+
+    expect(downloadFile).toHaveBeenCalledWith({
+      type: "download",
+      url: "/cv.pdf",
+      filename: "rizky-fauzi-ilmi-cv.pdf",
+      text: "Downloading rizky-fauzi-ilmi-cv.pdf — updated 26 Nov 2026. Progress: see toast.",
+    });
+    expect(result.current.activeTui).toBeNull();
+    expect(result.current.entries.at(-1)?.text).toContain(
+      "Downloading rizky-fauzi-ilmi-cv.pdf",
+    );
   });
 
   it("keeps entry ids unique after the screen is cleared", () => {

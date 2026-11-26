@@ -14,23 +14,27 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, onBack }: ProjectDetailProps) {
-  const copyUrl = async () => {
+  const copyUrl = () => {
     if (!project.url) return;
-    try {
-      await navigator.clipboard.writeText(project.url);
-      toast.add({
-        type: "success",
-        title: "Copied to clipboard",
-        description: project.url,
-        timeout: 2500,
-      });
-    } catch {
-      toast.add({
-        type: "error",
-        title: "Copy failed",
-        description: "Select the URL and copy it manually.",
-      });
-    }
+    return (
+      toast
+        .promise(navigator.clipboard.writeText(project.url), {
+          loading: { type: "loading", title: "Copying..." },
+          success: {
+            type: "success",
+            title: "Copied to clipboard",
+            description: project.url,
+            timeout: 2500,
+          },
+          error: {
+            type: "error",
+            title: "Copy failed",
+            description: "Select the URL and copy it manually.",
+          },
+        })
+        // toast.promise already reports the failure in the toast.
+        .catch(() => {})
+    );
   };
 
   const actions = project.url
