@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 
 import type { ThemeMode } from "../commands";
-import type { TerminalViewProps } from "../types";
+import type { TerminalViewProps } from "../shared";
 
 const THEME_ICONS: Record<ThemeMode, LucideIcon> = {
   dark: Moon,

@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/components/theme";
-import { PROMPT } from "@/components/terminal/constants";
+import { PROMPT } from "@/components/terminal/shared";
 import { useTerminalShell } from "./use-terminal-shell";
 
 function Wrapper({ children }: { children: ReactNode }) {

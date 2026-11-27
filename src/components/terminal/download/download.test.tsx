@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { Toaster } from "@/components/ui/toast";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CV } from "./data";
+import { CV } from "../data";
 import { downloadCv, downloadFile } from "./download";
 
 const fetchMock = vi.fn();

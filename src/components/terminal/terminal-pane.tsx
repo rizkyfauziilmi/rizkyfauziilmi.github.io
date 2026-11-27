@@ -10,7 +10,7 @@ import {
 import { InputGroup } from "@/components/ui/input-group";
 import { useTerminalShell } from "@/hooks";
 import type { TuiView } from "./commands";
-import { buildPrompt } from "./constants";
+import { buildPrompt } from "./shared";
 import { BlockCaretInput, TerminalPrompt } from "./input";
 import { CommandSuggestions, HaltedScreen, TerminalEntryView } from "./output";
 import { ContactTui, CvTui, ProjectsTui } from "./tui";

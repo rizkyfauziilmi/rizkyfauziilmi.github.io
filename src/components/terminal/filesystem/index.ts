@@ -1,0 +1,25 @@
+export {
+  createDirectory,
+  createFile,
+  createInitialFileSystem,
+  HOME_PATH,
+  isUserWritable,
+  listDirectory,
+  lookupNode,
+  normalizePath,
+  readFile,
+  removeNode,
+  ROOT_PATH,
+  writeFile,
+} from "./filesystem";
+export type {
+  CreateDirectoryResult,
+  CreateFileResult,
+  FsNode,
+  FsNodeKind,
+  ReadFileResult,
+  RemoveResult,
+  VirtualFileSystem,
+  WriteError,
+  WriteFileResult,
+} from "./filesystem";

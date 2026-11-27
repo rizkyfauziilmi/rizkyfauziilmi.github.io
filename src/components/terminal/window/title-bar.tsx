@@ -1,6 +1,6 @@
 import { AppIcon } from "./app-icon";
 import { AppTitle } from "./app-title";
-import { TERMINAL_TITLE } from "../constants";
+import { TERMINAL_TITLE } from "../shared";
 import { WindowDecoration } from "./window-decoration";
 
 export function TitleBar() {

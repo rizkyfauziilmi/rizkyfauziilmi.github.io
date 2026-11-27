@@ -1,4 +1,4 @@
-import { APP_HOST, APP_USER } from "../constants";
+import { APP_HOST, APP_USER } from "../shared";
 import { PORTFOLIO } from "../data/portfolio";
 import { createInitialFileSystem, HOME_PATH } from "../filesystem";
 import type { CommandContext } from "./types";

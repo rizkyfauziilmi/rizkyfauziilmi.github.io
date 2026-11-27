@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { LINE_CLASSNAME } from "../constants";
+import { LINE_CLASSNAME } from "../shared";
 
 interface CommandSuggestionsProps {
   names: string[];

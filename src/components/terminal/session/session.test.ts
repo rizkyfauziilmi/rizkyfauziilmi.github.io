@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PROMPT } from "./constants";
-import { createInitialFileSystem, HOME_PATH } from "./filesystem";
+import { createInitialFileSystem, HOME_PATH } from "../filesystem";
+import { PROMPT } from "../shared";
 import { createInitialSession, sessionReducer } from "./session";
 
 const output = (text: string) =>
