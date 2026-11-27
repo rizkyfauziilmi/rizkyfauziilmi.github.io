@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
 import { useBlockCaret, type HistoryDirection } from "@/hooks";
-import { INPUT_CLASSNAME, TERMINAL_INDENT } from "../constants";
+import { getPromptWidth, INPUT_CLASSNAME } from "../constants";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
 import { CommandHighlight } from "./command-highlight";
@@ -12,6 +12,7 @@ import { useCommandInputKeys } from "./use-command-input-keys";
 interface BlockCaretInputProps {
   inputRef: RefObject<HTMLTextAreaElement | null>;
   value: string;
+  prompt: string;
   onChange: (value: string) => void;
   onHistoryNavigate: (direction: HistoryDirection) => boolean;
   onSubmit: () => void;
@@ -27,6 +28,7 @@ interface BlockCaretInputProps {
 export function BlockCaretInput({
   inputRef,
   value,
+  prompt,
   onChange,
   onHistoryNavigate,
   onSubmit,
@@ -40,6 +42,7 @@ export function BlockCaretInput({
 }: BlockCaretInputProps) {
   const { mirrorRef, prefixRef, markerRef, caretStyle, showCaret } =
     useBlockCaret(inputRef, value);
+  const indent = getPromptWidth(prompt);
   const handleKeyDown = useCommandInputKeys({
     onComplete,
     onHelp,
@@ -59,7 +62,7 @@ export function BlockCaretInput({
         value={value}
         placeholder={placeholder}
         className={cn(INPUT_CLASSNAME, "text-transparent")}
-        style={{ textIndent: TERMINAL_INDENT }}
+        style={{ textIndent: indent }}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
       />
@@ -72,7 +75,7 @@ export function BlockCaretInput({
           INPUT_CLASSNAME,
           "pointer-events-none absolute inset-0 whitespace-pre-wrap",
         )}
-        style={{ textIndent: TERMINAL_INDENT }}
+        style={{ textIndent: indent }}
       >
         <CommandHighlight value={value} />
       </div>
@@ -81,7 +84,7 @@ export function BlockCaretInput({
         prefixRef={prefixRef}
         markerRef={markerRef}
         className={INPUT_CLASSNAME}
-        indent={TERMINAL_INDENT}
+        indent={indent}
       />
       {showCaret && caretStyle && <BlockCaret style={caretStyle} />}
     </div>

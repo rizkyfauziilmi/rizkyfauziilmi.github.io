@@ -1,5 +1,10 @@
 import type { CommandResult, TuiView } from "./commands";
-import { createInitialFileSystem, type VirtualFileSystem } from "./filesystem";
+import { buildPrompt } from "./constants";
+import {
+  createInitialFileSystem,
+  HOME_PATH,
+  type VirtualFileSystem,
+} from "./filesystem";
 import type { TerminalEntry } from "./types";
 
 export type PendingAction =
@@ -15,6 +20,7 @@ export type SessionState = {
   pendingAction: PendingAction;
   activeTui: TuiView | null;
   filesystem: VirtualFileSystem;
+  cwd: string;
   // Never reset on clear: React keys must stay unique across a screen wipe.
   nextEntryId: number;
 };
@@ -33,6 +39,7 @@ export function createInitialSession(): SessionState {
     pendingAction: null,
     activeTui: null,
     filesystem: createInitialFileSystem(),
+    cwd: HOME_PATH,
     nextEntryId: 0,
   };
 }
@@ -80,7 +87,12 @@ export function sessionReducer(
       ...state,
       entries: [
         ...state.entries,
-        { id: state.nextEntryId, kind: "input", text: action.text },
+        {
+          id: state.nextEntryId,
+          kind: "input",
+          text: action.text,
+          prompt: buildPrompt(state.cwd),
+        },
       ],
       nextEntryId: state.nextEntryId + 1,
     };
@@ -114,13 +126,12 @@ export function sessionReducer(
   let pendingAction = state.pendingAction;
   let activeTui: TuiView | null = state.activeTui;
   let filesystem = state.filesystem;
+  let cwd = state.cwd;
   let entryResult: CommandResult = result;
 
-  if (
-    (result.type === "output" || result.type === "blank") &&
-    result.filesystem
-  ) {
-    filesystem = result.filesystem;
+  if (result.type === "output" || result.type === "blank") {
+    if (result.filesystem) filesystem = result.filesystem;
+    if (result.cwd) cwd = result.cwd;
   }
 
   switch (result.type) {
@@ -160,6 +171,8 @@ export function sessionReducer(
       id: state.nextEntryId,
       kind: "input",
       text: command,
+      // The line keeps the prompt from before a `cd` took effect.
+      prompt: buildPrompt(state.cwd),
     };
     const hidesOutput =
       entryResult.type === "blank" || entryResult.type === "tui";
@@ -179,6 +192,7 @@ export function sessionReducer(
     pendingAction,
     activeTui,
     filesystem,
+    cwd,
     nextEntryId,
   };
 }

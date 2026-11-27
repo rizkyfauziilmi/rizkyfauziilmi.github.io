@@ -32,11 +32,12 @@ export function useTerminalShell({
     exitTui,
     powerOn,
     filesystem,
+    cwd,
   } = useTerminalHistory();
 
   const catalog = useMemo(
-    () => createCompletionCatalog(filesystem),
-    [filesystem],
+    () => createCompletionCatalog(filesystem, cwd),
+    [filesystem, cwd],
   );
   const {
     value,
@@ -104,6 +105,7 @@ export function useTerminalShell({
   return {
     entries,
     value,
+    cwd,
     isHalted,
     activeTui,
     changeValue,

@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/components/theme";
+import { PROMPT } from "@/components/terminal/constants";
 import { useTerminalShell } from "./use-terminal-shell";
 
 function Wrapper({ children }: { children: ReactNode }) {
@@ -46,7 +47,7 @@ describe("useTerminalShell", () => {
     expect(result.current.value).toBe("");
     expect(focusInput).toHaveBeenCalledTimes(1);
     expect(result.current.entries).toEqual([
-      { id: 0, kind: "input", text: "asdf^C" },
+      { id: 0, kind: "input", text: "asdf^C", prompt: PROMPT },
     ]);
   });
 
@@ -157,6 +158,28 @@ describe("useTerminalShell", () => {
     act(() => result.current.changeValue("ls"));
     act(() => result.current.runValue());
     expect(result.current.entries.at(-1)?.text).toContain("Documents");
+  });
+
+  it("updates the prompt and relative completion after cd", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("cd Documents"));
+    act(() => result.current.runValue());
+
+    expect(result.current.cwd).toBe("/home/rizkyfauziilmi/Documents");
+    // The submitted line keeps the prompt it was typed at.
+    expect(result.current.entries.at(-1)?.prompt).toBe(PROMPT);
+
+    act(() => result.current.changeValue("ls no"));
+    act(() => result.current.complete());
+    expect(result.current.value).toBe("ls notes.txt ");
+
+    act(() => result.current.changeValue("cd .."));
+    act(() => result.current.runValue());
+    expect(result.current.cwd).toBe("/home/rizkyfauziilmi");
+    expect(result.current.entries.at(-1)?.prompt).toBe(
+      "rizkyfauziilmi@portofolio:~/Documents$",
+    );
   });
 
   it("completes a path from the live filesystem", () => {

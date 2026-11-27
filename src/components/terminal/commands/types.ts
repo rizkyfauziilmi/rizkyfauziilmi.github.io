@@ -13,6 +13,7 @@ export type CommandResult =
       text: string;
       isError: boolean;
       filesystem?: VirtualFileSystem;
+      cwd?: string;
     }
   | { type: "component"; view: ComponentView }
   | { type: "tui"; view: TuiView }
@@ -22,7 +23,7 @@ export type CommandResult =
   | { type: "shutdown"; delayMs: number; text: string }
   | { type: "shutdown-cancel" }
   | { type: "clear" }
-  | { type: "blank"; filesystem?: VirtualFileSystem };
+  | { type: "blank"; filesystem?: VirtualFileSystem; cwd?: string };
 
 export type CommandArgument = {
   name: string;
@@ -45,6 +46,7 @@ export type CommandContext = {
   userAgent: string;
   uptimeMs: number;
   filesystem: VirtualFileSystem;
+  cwd: string;
 };
 
 export type CommandDefinition = {

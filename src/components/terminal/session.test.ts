@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 
+import { PROMPT } from "./constants";
 import { createInitialFileSystem, HOME_PATH } from "./filesystem";
 import { createInitialSession, sessionReducer } from "./session";
 
 const output = (text: string) =>
   ({ type: "output" as const, text, isError: false }) as const;
+const input = (id: number, text: string) => ({
+  id,
+  kind: "input" as const,
+  text,
+  prompt: PROMPT,
+});
 
 describe("sessionReducer", () => {
   it("keeps entry ids unique after clear", () => {
@@ -61,9 +68,9 @@ describe("sessionReducer", () => {
     state = sessionReducer(state, { type: "interrupt", text: "asdf^C" });
 
     expect(state.entries).toEqual([
-      { id: 0, kind: "input", text: "help" },
+      input(0, "help"),
       { id: 1, kind: "output", text: "help text", isError: false },
-      { id: 2, kind: "input", text: "asdf^C" },
+      input(2, "asdf^C"),
     ]);
     expect(state.commands).toEqual(["help"]);
     expect(state.nextEntryId).toBe(3);
@@ -104,7 +111,7 @@ describe("sessionReducer", () => {
     });
 
     expect(state.activeTui).toBe("projects");
-    expect(state.entries).toEqual([{ id: 0, kind: "input", text: "projects" }]);
+    expect(state.entries).toEqual([input(0, "projects")]);
     expect(state.nextEntryId).toBe(1);
 
     const ignored = sessionReducer(state, {
@@ -126,7 +133,7 @@ describe("sessionReducer", () => {
     });
 
     expect(state.activeTui).toBe("contact");
-    expect(state.entries).toEqual([{ id: 0, kind: "input", text: "contact" }]);
+    expect(state.entries).toEqual([input(0, "contact")]);
 
     state = sessionReducer(state, { type: "exit-tui" });
     expect(state.activeTui).toBeNull();
@@ -146,7 +153,7 @@ describe("sessionReducer", () => {
 
     expect(state.activeTui).toBeNull();
     expect(state.entries).toEqual([
-      { id: 0, kind: "input", text: "cv --download" },
+      input(0, "cv --download"),
       {
         id: 1,
         kind: "output",
@@ -191,5 +198,26 @@ describe("sessionReducer", () => {
       result: output("hi"),
     });
     expect(fresh.filesystem.has(filename)).toBe(true);
+  });
+
+  it("persists cd across commands and snapshots each input's prompt", () => {
+    let state = createInitialSession();
+    state = sessionReducer(state, {
+      type: "submit",
+      command: "cd Documents",
+      result: { type: "blank", cwd: `${HOME_PATH}/Documents` },
+    });
+    expect(state.cwd).toBe(`${HOME_PATH}/Documents`);
+    expect(state.entries[0].prompt).toBe(PROMPT);
+
+    state = sessionReducer(state, {
+      type: "submit",
+      command: "cd ..",
+      result: { type: "blank", cwd: HOME_PATH },
+    });
+    expect(state.cwd).toBe(HOME_PATH);
+    expect(state.entries[1].prompt).toBe(
+      "rizkyfauziilmi@portofolio:~/Documents$",
+    );
   });
 });

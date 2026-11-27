@@ -13,6 +13,7 @@ const CONTEXT: CommandContext = {
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36",
   uptimeMs: 62_345,
   filesystem: createInitialFileSystem(),
+  cwd: "/home/rizkyfauziilmi",
 };
 
 describe("buildFetchOutput", () => {

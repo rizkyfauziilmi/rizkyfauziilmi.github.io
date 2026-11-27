@@ -260,6 +260,25 @@ describe("completeCommand", () => {
     expect(completeCommand("ls ab", 5, withFiles).suggestions).toEqual([]);
   });
 
+  it("completes cd paths relative to the current directory", () => {
+    const withFiles = createCompletionCatalog(
+      createInitialFileSystem(),
+      "/home/rizkyfauziilmi/Documents",
+    );
+
+    expect(completeCommand("cd no", 5, withFiles)).toMatchObject({
+      value: "cd notes.txt ",
+      suggestions: [],
+    });
+    expect(
+      completeCommand(
+        "cd Doc",
+        6,
+        createCompletionCatalog(createInitialFileSystem()),
+      ),
+    ).toMatchObject({ value: "cd Documents/ ", suggestions: [] });
+  });
+
   it("completes nested absolute paths for rm without losing flags", () => {
     const withFiles = createCompletionCatalog(createInitialFileSystem());
 

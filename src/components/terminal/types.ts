@@ -6,6 +6,8 @@ export type TerminalEntry = {
   id: number;
   kind: "input" | "output";
   text: string;
+  // Prompt snapshot for input lines; output entries ignore it.
+  prompt?: string;
   view?: TerminalView;
   themeMode?: ThemeMode;
   isError?: boolean;

@@ -2,7 +2,6 @@ import { isThemeMode } from "@/lib/theme";
 
 import { CV, formatCvUpdatedAt } from "../data";
 import {
-  HOME_PATH,
   isUserWritable,
   listDirectory,
   lookupNode,
@@ -129,14 +128,55 @@ const CONTACT_COMMAND: CommandDefinition = {
   run: () => ({ type: "tui", view: "contact" }),
 };
 
-function runLsCommand(args: string[], filesystem: VirtualFileSystem) {
+const CD_COMMAND: CommandDefinition = {
+  name: "cd",
+  description: "Change the current directory",
+  usageArgs: "[path]",
+  arguments: [{ name: "path", description: "Defaults to the home directory" }],
+  examples: ["cd", "cd Documents", "cd ..", "cd /etc"],
+  acceptsArgs: true,
+  run: (args, context) => {
+    if (args.length > 1) {
+      return {
+        type: "output" as const,
+        text: "cd: too many arguments",
+        isError: true,
+      };
+    }
+
+    const target = args[0] ?? "~";
+    const found = lookupNode(context.filesystem, target, context.cwd);
+    if (!found) {
+      return {
+        type: "output" as const,
+        text: `cd: ${target}: No such file or directory`,
+        isError: true,
+      };
+    }
+    if (found.node.kind !== "directory") {
+      return {
+        type: "output" as const,
+        text: `cd: ${target}: Not a directory`,
+        isError: true,
+      };
+    }
+
+    return { type: "blank" as const, cwd: found.path };
+  },
+};
+
+function runLsCommand(
+  args: string[],
+  filesystem: VirtualFileSystem,
+  cwd: string,
+) {
   const showAll = args.some((arg) => arg === "-a" || arg === "--all");
   const targets = args.filter((arg) => !arg.startsWith("-"));
   const errors: string[] = [];
   const lines: string[] = [];
 
   for (const target of targets.length > 0 ? targets : ["."]) {
-    const found = lookupNode(filesystem, target, HOME_PATH);
+    const found = lookupNode(filesystem, target, cwd);
     if (!found) {
       errors.push(`ls: cannot access '${target}': No such file or directory`);
       continue;
@@ -161,17 +201,23 @@ const LS_COMMAND: CommandDefinition = {
   name: "ls",
   description: "List files and directories",
   usageArgs: "[-a] [path...]",
-  arguments: [{ name: "path", description: "Defaults to the home directory" }],
+  arguments: [
+    { name: "path", description: "Defaults to the current directory" },
+  ],
   flags: [
     { name: "-a", description: "Include hidden entries" },
     { name: "--all", description: "Include hidden entries" },
   ],
   examples: ["ls", "ls -a", "ls Documents", "ls /etc"],
   acceptsArgs: true,
-  run: (args, context) => runLsCommand(args, context.filesystem),
+  run: (args, context) => runLsCommand(args, context.filesystem, context.cwd),
 };
 
-function runRmCommand(args: string[], filesystem: VirtualFileSystem) {
+function runRmCommand(
+  args: string[],
+  filesystem: VirtualFileSystem,
+  cwd: string,
+) {
   // Flags never name files; combined forms such as -rf stay supported.
   const flags = args.filter((arg) => arg.startsWith("-"));
   const recursive = flags.some((flag) => /[rR]/.test(flag.slice(1)));
@@ -188,7 +234,7 @@ function runRmCommand(args: string[], filesystem: VirtualFileSystem) {
 
   const errors: string[] = [];
   for (const target of paths) {
-    const found = lookupNode(filesystem, target, HOME_PATH);
+    const found = lookupNode(filesystem, target, cwd);
     if (!found) {
       if (!force) {
         errors.push(`rm: cannot remove '${target}': No such file or directory`);
@@ -228,7 +274,7 @@ const RM_COMMAND: CommandDefinition = {
     { name: "-f", description: "Ignore missing files" },
   ],
   acceptsArgs: true,
-  run: (args, context) => runRmCommand(args, context.filesystem),
+  run: (args, context) => runRmCommand(args, context.filesystem, context.cwd),
 };
 
 // Commands reject extra arguments unless they explicitly opt in with acceptsArgs.
@@ -243,6 +289,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Clear the terminal screen",
     run: () => ({ type: "clear" }),
   },
+  CD_COMMAND,
   {
     name: "echo",
     description: "Print text to the terminal",

@@ -29,6 +29,7 @@ Open the URL printed by Vite. Production output goes to `dist/`. `pnpm install` 
 | Command                         | Description                                       |
 | ------------------------------- | ------------------------------------------------- |
 | `about`                         | Show the avatar, role, and bio                    |
+| `cd [path]`                     | Change directory (prompt follows the path)        |
 | `clear`                         | Clear the screen (history survives)               |
 | `echo [text...]`                | Print text; quotes group words                    |
 | `help`                          | List public commands and tips                     |
@@ -41,11 +42,11 @@ Open the URL printed by Vite. Production output goes to `dist/`. `pnpm install` 
 | `shutdown <now\|+N\|HH:MM\|-c>` | Close now, schedule (`+5`, `23:30`), or cancel    |
 | `theme <dark\|light\|system>`   | Switch the color theme                            |
 
-Run `help` or `<command> -h` for details; `echo` and hidden commands are exceptions. Hidden eggs `fastfetch`, `sudo`, `rm`, and `whoami` work but stay out of help. The imitation home starts with a standard Linux layout (dotfiles and folders like `Desktop`, `Documents`, `Downloads`). `rm` works without sudo only inside `~` (`-r` for directories); other paths return `Permission denied` because `sudo` is unavailable. A reload restores the original tree.
+Run `help` or `<command> -h` for details; `echo` and hidden commands are exceptions. Hidden eggs `fastfetch`, `sudo`, `rm`, and `whoami` work but stay out of help. The imitation home starts with a standard Linux layout (dotfiles and folders like `Desktop`, `Documents`, `Downloads`). `cd` changes the working directory for `ls`, `rm`, Tab completion, and the prompt. `rm` works without sudo only inside `~` (`-r` for directories); other paths return `Permission denied` because `sudo` is unavailable. A reload restores the original tree and directory.
 
 ## Shortcuts
 
-- `Tab` completes commands, flags, argument values, and paths for `ls`/`rm`; press again to cycle matches, `Shift+Tab` to go back.
+- `Tab` completes commands, flags, argument values, and paths for `cd`/`ls`/`rm`; press again to cycle matches, `Shift+Tab` to go back.
 - `Enter` accepts a highlighted match; press again to run it. `Escape` cancels it.
 - `Ctrl+?` (or `Ctrl+/`) opens help. `Ctrl+C` aborts the current line with `^C` and opens a new prompt; the command is not run or saved to history. `↑`/`↓` browse history; type a prefix then `↑` to filter it.
 - In the `projects` and `contact` TUIs: `↑`/`↓` or `j`/`k` move, `Enter` opens detail. In detail, `←`/`→` or `h`/`l` switch actions, `Enter` activates, `Esc`/`q` goes back, and `q` in the list or `Ctrl+C` anywhere exits. Detail actions copy the value (success toast) or open the link. Header buttons go back: detail → list, list → terminal.
