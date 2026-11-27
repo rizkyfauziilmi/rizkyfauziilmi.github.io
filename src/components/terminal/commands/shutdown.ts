@@ -1,7 +1,7 @@
 import { addDays, differenceInMilliseconds, format, parse } from "date-fns";
 
 export const SHUTDOWN_ERROR =
-  "(error) shutdown: expected 'now', '+5' (minutes), '23:30' (24-hour), or '-c'...";
+  "shutdown: expected 'now', '+5' (minutes), '23:30' (24-hour), or '-c'...";
 
 export type ShutdownPlan =
   | { kind: "now" }

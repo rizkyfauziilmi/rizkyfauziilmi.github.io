@@ -1,6 +1,14 @@
 import { isThemeMode } from "@/lib/theme";
 
 import { CV, formatCvUpdatedAt } from "../data";
+import {
+  HOME_PATH,
+  isUserWritable,
+  listDirectory,
+  lookupNode,
+  removeNode,
+  type VirtualFileSystem,
+} from "../filesystem";
 import { buildFetchOutput } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
@@ -87,7 +95,7 @@ function runCvCommand(name: string, args: string[]): CommandResult {
 
   return {
     type: "output",
-    text: `(error) ${name}: expected '${DOWNLOAD_FLAG}'...`,
+    text: `${name}: expected '${DOWNLOAD_FLAG}'...`,
     isError: true,
   };
 }
@@ -121,6 +129,108 @@ const CONTACT_COMMAND: CommandDefinition = {
   run: () => ({ type: "tui", view: "contact" }),
 };
 
+function runLsCommand(args: string[], filesystem: VirtualFileSystem) {
+  const showAll = args.some((arg) => arg === "-a" || arg === "--all");
+  const targets = args.filter((arg) => !arg.startsWith("-"));
+  const errors: string[] = [];
+  const lines: string[] = [];
+
+  for (const target of targets.length > 0 ? targets : ["."]) {
+    const found = lookupNode(filesystem, target, HOME_PATH);
+    if (!found) {
+      errors.push(`ls: cannot access '${target}': No such file or directory`);
+      continue;
+    }
+
+    if (found.node.kind === "file") {
+      lines.push(found.path.split("/").at(-1) ?? target);
+    } else {
+      if (showAll) lines.push(".", "..");
+      lines.push(...listDirectory(filesystem, found.path, showAll));
+    }
+  }
+
+  if (errors.length > 0) {
+    return { type: "output" as const, text: errors.join("\n"), isError: true };
+  }
+  if (lines.length === 0) return { type: "blank" as const };
+  return { type: "output" as const, text: lines.join("  "), isError: false };
+}
+
+const LS_COMMAND: CommandDefinition = {
+  name: "ls",
+  description: "List files and directories",
+  usageArgs: "[-a] [path...]",
+  arguments: [{ name: "path", description: "Defaults to the home directory" }],
+  flags: [
+    { name: "-a", description: "Include hidden entries" },
+    { name: "--all", description: "Include hidden entries" },
+  ],
+  examples: ["ls", "ls -a", "ls Documents", "ls /etc"],
+  acceptsArgs: true,
+  run: (args, context) => runLsCommand(args, context.filesystem),
+};
+
+function runRmCommand(args: string[], filesystem: VirtualFileSystem) {
+  // Flags never name files; combined forms such as -rf stay supported.
+  const flags = args.filter((arg) => arg.startsWith("-"));
+  const recursive = flags.some((flag) => /[rR]/.test(flag.slice(1)));
+  const force = flags.some((flag) => flag.includes("f"));
+  const paths = args.filter((arg) => !arg.startsWith("-"));
+
+  if (paths.length === 0) {
+    return {
+      type: "output" as const,
+      text: "rm: missing operand",
+      isError: true,
+    };
+  }
+
+  const errors: string[] = [];
+  for (const target of paths) {
+    const found = lookupNode(filesystem, target, HOME_PATH);
+    if (!found) {
+      if (!force) {
+        errors.push(`rm: cannot remove '${target}': No such file or directory`);
+      }
+      continue;
+    }
+
+    // Only entries inside home belong to the user; sudo is unavailable here.
+    if (!isUserWritable(found.path)) {
+      errors.push(`rm: cannot remove '${target}': Permission denied`);
+      continue;
+    }
+
+    const removal = removeNode(filesystem, found.path, recursive);
+    filesystem = removal.filesystem;
+    if (removal.error === "is-directory") {
+      errors.push(`rm: cannot remove '${target}': Is a directory`);
+    }
+  }
+
+  if (errors.length === 0) return { type: "blank" as const, filesystem };
+  return {
+    type: "output" as const,
+    text: errors.join("\n"),
+    isError: true,
+    filesystem,
+  };
+}
+
+const RM_COMMAND: CommandDefinition = {
+  name: "rm",
+  description: "Remove files or directories",
+  hidden: true,
+  flags: [
+    { name: "-r", description: "Remove directories recursively" },
+    { name: "-R", description: "Alias for -r" },
+    { name: "-f", description: "Ignore missing files" },
+  ],
+  acceptsArgs: true,
+  run: (args, context) => runRmCommand(args, context.filesystem),
+};
+
 // Commands reject extra arguments unless they explicitly opt in with acceptsArgs.
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
@@ -150,6 +260,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     // HelpOutput reads the registry directly; the result stays plain data.
     run: () => ({ type: "component", view: "help" }),
   },
+  LS_COMMAND,
   FETCH_COMMAND,
   {
     name: "projects",
@@ -188,7 +299,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 
       return {
         type: "output",
-        text: "(error) theme: expected 'dark', 'light', or 'system'...",
+        text: "theme: expected 'dark', 'light', or 'system'...",
         isError: true,
       };
     },
@@ -205,51 +316,11 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     hidden: true,
     run: () => ({
       type: "output",
-      text: "(error) sudo: rizkyfauziilmi is not in the sudoers file. This incident has been reported. 🐾",
+      text: "sudo: rizkyfauziilmi is not in the sudoers file. This incident has been reported. 🐾",
       isError: true,
     }),
   },
-  {
-    name: "rm",
-    description: "Remove files or directories",
-    hidden: true,
-    flags: [
-      { name: "-r", description: "Remove directories recursively" },
-      { name: "-R", description: "Alias for -r" },
-    ],
-    run: (args) => {
-      // Ignore flags when finding the path, but keep them to tell `rm /` from `rm -r /`.
-      const flags = args.filter((arg) => arg.startsWith("-"));
-      const recursive = flags.some(
-        (flag) => flag.includes("r") || flag.includes("R"),
-      );
-      const paths = args.filter((arg) => !arg.startsWith("-"));
-      const target = paths[paths.length - 1];
-
-      if (!target) {
-        return {
-          type: "output",
-          text: "(error) rm: missing operand",
-          isError: true,
-        };
-      }
-
-      // Without -r, removing a directory fails like a real shell.
-      if (target === "/" && !recursive) {
-        return {
-          type: "output",
-          text: "(error) rm: cannot remove '/': Is a directory",
-          isError: true,
-        };
-      }
-
-      return {
-        type: "output",
-        text: `(error) rm: refusing to remove '${target}'. This terminal is read-only. 🛡️`,
-        isError: true,
-      };
-    },
-  },
+  RM_COMMAND,
   {
     name: "whoami",
     description: "Print the current user",

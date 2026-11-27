@@ -1,4 +1,5 @@
 import type { CommandResult, TuiView } from "./commands";
+import { createInitialFileSystem, type VirtualFileSystem } from "./filesystem";
 import type { TerminalEntry } from "./types";
 
 export type PendingAction =
@@ -13,6 +14,7 @@ export type SessionState = {
   phase: "running" | "halted";
   pendingAction: PendingAction;
   activeTui: TuiView | null;
+  filesystem: VirtualFileSystem;
   // Never reset on clear: React keys must stay unique across a screen wipe.
   nextEntryId: number;
 };
@@ -30,6 +32,7 @@ export function createInitialSession(): SessionState {
     phase: "running",
     pendingAction: null,
     activeTui: null,
+    filesystem: createInitialFileSystem(),
     nextEntryId: 0,
   };
 }
@@ -110,7 +113,15 @@ export function sessionReducer(
   let entries = state.entries;
   let pendingAction = state.pendingAction;
   let activeTui: TuiView | null = state.activeTui;
+  let filesystem = state.filesystem;
   let entryResult: CommandResult = result;
+
+  if (
+    (result.type === "output" || result.type === "blank") &&
+    result.filesystem
+  ) {
+    filesystem = result.filesystem;
+  }
 
   switch (result.type) {
     case "clear":
@@ -161,5 +172,13 @@ export function sessionReducer(
         ];
   }
 
-  return { ...state, entries, commands, pendingAction, activeTui, nextEntryId };
+  return {
+    ...state,
+    entries,
+    commands,
+    pendingAction,
+    activeTui,
+    filesystem,
+    nextEntryId,
+  };
 }

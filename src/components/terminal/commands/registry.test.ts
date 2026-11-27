@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { createInitialFileSystem, HOME_PATH } from "../filesystem";
 import { createDefaultCommandContext } from "./fetch";
 import { COMMAND_DEFINITIONS } from "./registry";
-import type { CommandDefinition } from "./types";
+import type { CommandDefinition, CommandResult } from "./types";
 
 function findCommand(name: string): CommandDefinition {
   const definition = COMMAND_DEFINITIONS.find((item) => item.name === name);
@@ -10,8 +11,12 @@ function findCommand(name: string): CommandDefinition {
   return definition;
 }
 
+function run(name: string, args: string[]): CommandResult {
+  return findCommand(name).run(args, createDefaultCommandContext());
+}
+
 function outputFor(name: string, args: string[]): string {
-  const result = findCommand(name).run(args, createDefaultCommandContext());
+  const result = run(name, args);
   if (result.type !== "output") throw new Error("Expected an output result");
   return result.text;
 }
@@ -45,24 +50,97 @@ describe("hidden easter eggs", () => {
     expect(outputFor("sudo", [])).toContain("not in the sudoers file");
     expect(outputFor("whoami", [])).toContain("guest");
   });
+});
 
-  it("reports / as a directory without -r", () => {
-    expect(outputFor("rm", ["/"])).toBe(
-      "(error) rm: cannot remove '/': Is a directory",
+describe("rm", () => {
+  it("reports a missing operand", () => {
+    expect(outputFor("rm", [])).toBe("rm: missing operand");
+    expect(outputFor("rm", ["-f"])).toBe("rm: missing operand");
+  });
+
+  it("reports a missing file with the path the user typed", () => {
+    expect(outputFor("rm", ["asdf"])).toBe(
+      "rm: cannot remove 'asdf': No such file or directory",
+    );
+    expect(outputFor("rm", ["/etc/nope"])).toBe(
+      "rm: cannot remove '/etc/nope': No such file or directory",
+    );
+    expect(run("rm", ["-f", "asdf"])).toEqual({
+      type: "blank",
+      filesystem: createInitialFileSystem(),
+    });
+  });
+
+  it("removes a file from the filesystem snapshot", () => {
+    const result = run("rm", ["Documents/notes.txt"]);
+    expect(result.type).toBe("blank");
+    if (result.type !== "blank" || !result.filesystem) {
+      throw new Error("Expected a filesystem mutation");
+    }
+    expect(result.filesystem.has(`${HOME_PATH}/Documents/notes.txt`)).toBe(
+      false,
+    );
+    expect(result.filesystem.has(`${HOME_PATH}/.bashrc`)).toBe(true);
+  });
+
+  it("requires -r for directories inside home", () => {
+    expect(outputFor("rm", ["Documents"])).toBe(
+      "rm: cannot remove 'Documents': Is a directory",
+    );
+    expect(outputFor("rm", ["-f", "Documents"])).toBe(
+      "rm: cannot remove 'Documents': Is a directory",
     );
   });
 
-  it("keeps the read-only joke for recursive root removal", () => {
-    expect(outputFor("rm", ["-rf", "/"])).toContain("read-only");
-    expect(outputFor("rm", ["-r", "/"])).toContain("read-only");
+  it("removes a home directory recursively with -r, -R, or -rf", () => {
+    for (const flag of ["-r", "-R", "-rf"]) {
+      const result = run("rm", [flag, "Documents"]);
+      expect(result.type).toBe("blank");
+      if (result.type !== "blank" || !result.filesystem) {
+        throw new Error("Expected a filesystem mutation");
+      }
+      expect(result.filesystem.has(`${HOME_PATH}/Documents`)).toBe(false);
+      expect(result.filesystem.has(`${HOME_PATH}/Documents/notes.txt`)).toBe(
+        false,
+      );
+    }
   });
 
-  it("reports the path the user typed", () => {
-    expect(outputFor("rm", ["asdf"])).toContain("'asdf'");
-    expect(outputFor("rm", ["-f", "asdf"])).toContain("'asdf'");
+  it("rejects paths that would require sudo", () => {
+    for (const target of [
+      "/",
+      "/home/",
+      "/home/rizkyfauziilmi",
+      "~",
+      ".",
+      "/bin/",
+      "/etc/hostname",
+      "/usr",
+      "/var",
+      "/tmp",
+    ]) {
+      expect(outputFor("rm", ["-rf", target])).toBe(
+        `rm: cannot remove '${target}': Permission denied`,
+      );
+    }
   });
 
-  it("reports a missing operand", () => {
-    expect(outputFor("rm", [])).toBe("(error) rm: missing operand");
+  it("does not let -f hide permission errors", () => {
+    expect(outputFor("rm", ["-f", "/etc/hostname"])).toBe(
+      "rm: cannot remove '/etc/hostname': Permission denied",
+    );
+  });
+
+  it("collects errors while keeping successful removals", () => {
+    const result = run("rm", [".bashrc", "/etc/hostname"]);
+    expect(result).toMatchObject({
+      type: "output",
+      text: "rm: cannot remove '/etc/hostname': Permission denied",
+      isError: true,
+    });
+    if (result.type !== "output" || !result.filesystem) {
+      throw new Error("Expected a filesystem mutation");
+    }
+    expect(result.filesystem.has(`${HOME_PATH}/.bashrc`)).toBe(false);
   });
 });

@@ -72,6 +72,7 @@ export function useTerminalHistory() {
         platform: getPlatform(),
         userAgent: navigator.userAgent,
         uptimeMs: performance.now(),
+        filesystem: session.filesystem,
       };
       const result = runCommand(command, context);
       if (result.type === "theme") setTheme(result.mode);
@@ -79,7 +80,7 @@ export function useTerminalHistory() {
       dispatch({ type: "submit", command, result });
       return true;
     },
-    [session.phase, session.activeTui, theme, setTheme],
+    [session.phase, session.activeTui, session.filesystem, theme, setTheme],
   );
 
   const interrupt = useCallback(
@@ -94,6 +95,7 @@ export function useTerminalHistory() {
     commands: session.commands,
     isHalted: session.phase === "halted",
     activeTui: session.activeTui,
+    filesystem: session.filesystem,
     submit,
     interrupt,
     exitTui,

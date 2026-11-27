@@ -18,6 +18,8 @@ export type CompletionCatalog = {
     command: CommandDefinition,
     isFirstArgument: boolean,
   ) => readonly string[];
+  // Filesystem-aware candidates, supplied by a shell snapshot for path commands.
+  pathsFor?: (command: CommandDefinition, prefix: string) => readonly string[];
 };
 
 export type CompletionSpan = Pick<TokenSpan, "start" | "end">;
@@ -160,7 +162,12 @@ export function completeCommand(
       ? (command.arguments ?? []).flatMap((argument) => argument.values ?? [])
       : [];
   const flags = catalog.flagsFor(command, argumentIndex === 0);
-  const candidates = [...new Set([...values, ...flags])];
+  const prefixEnd = Math.max(token.start, Math.min(safeCaret, token.end));
+  const paths = catalog.pathsFor?.(
+    command,
+    input.slice(token.start, prefixEnd),
+  );
+  const candidates = [...new Set([...values, ...flags, ...(paths ?? [])])];
 
   return completeSpan(input, safeCaret, token, candidates, unchanged);
 }

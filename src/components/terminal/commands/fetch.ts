@@ -1,5 +1,6 @@
 import { APP_HOST, APP_USER } from "../constants";
 import { PORTFOLIO } from "../data/portfolio";
+import { createInitialFileSystem } from "../filesystem";
 import type { CommandContext } from "./types";
 
 const ASCII_ART = [
@@ -52,6 +53,7 @@ export function createDefaultCommandContext(): CommandContext {
     platform: "Browser",
     userAgent: "",
     uptimeMs: 0,
+    filesystem: createInitialFileSystem(),
   };
 }
 

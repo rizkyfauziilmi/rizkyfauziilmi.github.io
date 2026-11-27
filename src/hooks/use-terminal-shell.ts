@@ -1,6 +1,6 @@
-import { useCallback, type RefObject } from "react";
+import { useCallback, useMemo, type RefObject } from "react";
 
-import { COMMAND_CATALOG } from "@/components/terminal/commands";
+import { createCompletionCatalog } from "@/components/terminal/commands";
 import { INTERRUPT_MARKER } from "@/components/terminal/constants";
 import { useCommandCompletion } from "./use-command-completion";
 import {
@@ -31,7 +31,13 @@ export function useTerminalShell({
     activeTui,
     exitTui,
     powerOn,
+    filesystem,
   } = useTerminalHistory();
+
+  const catalog = useMemo(
+    () => createCompletionCatalog(filesystem),
+    [filesystem],
+  );
   const {
     value,
     changeValue: setHistoryValue,
@@ -49,7 +55,7 @@ export function useTerminalShell({
   } = useCommandCompletion({
     value,
     inputRef,
-    catalog: COMMAND_CATALOG,
+    catalog,
     replaceValue,
   });
 

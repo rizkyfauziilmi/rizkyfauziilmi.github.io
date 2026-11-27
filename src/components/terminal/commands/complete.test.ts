@@ -6,7 +6,8 @@ import {
   getCompletionSpan,
   type CompletionCatalog,
 } from "./complete";
-import { COMMAND_CATALOG } from "./catalog";
+import { COMMAND_CATALOG, createCompletionCatalog } from "./catalog";
+import { createInitialFileSystem } from "../filesystem";
 import type { CommandDefinition } from "./types";
 
 const command = (
@@ -243,6 +244,44 @@ describe("completeCommand", () => {
       caret: 6,
       suggestions: [],
     });
+  });
+
+  it("completes file paths for ls from the filesystem snapshot", () => {
+    const withFiles = createCompletionCatalog(createInitialFileSystem());
+
+    expect(completeCommand("ls Doc", 6, withFiles)).toMatchObject({
+      value: "ls Documents/ ",
+      suggestions: [],
+    });
+    expect(completeCommand("ls .ba", 6, withFiles)).toMatchObject({
+      value: "ls .bashrc ",
+      suggestions: [],
+    });
+    expect(completeCommand("ls ab", 5, withFiles).suggestions).toEqual([]);
+  });
+
+  it("completes nested absolute paths for rm without losing flags", () => {
+    const withFiles = createCompletionCatalog(createInitialFileSystem());
+
+    expect(completeCommand("rm /etc/h", 9, withFiles)).toMatchObject({
+      value: "rm /etc/hostname ",
+      suggestions: [],
+    });
+    expect(completeCommand("rm -", 4, withFiles).suggestions).toEqual([
+      "-R",
+      "-f",
+      "-r",
+    ]);
+  });
+
+  it("follows deletions in a newer filesystem snapshot", () => {
+    const filesystem = createInitialFileSystem();
+    const withoutDocuments = new Map(filesystem);
+    withoutDocuments.delete("/home/rizkyfauziilmi/Documents");
+
+    expect(
+      completeCommand("ls Doc", 6, createCompletionCatalog(withoutDocuments)),
+    ).toEqual({ value: "ls Doc", caret: 6, suggestions: [] });
   });
 });
 

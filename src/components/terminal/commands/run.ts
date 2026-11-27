@@ -8,7 +8,7 @@ import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 function rejectArguments(command: CommandDefinition): CommandResult {
   return {
     type: "output",
-    text: `(error) ${command.name}: command does not accept arguments...`,
+    text: `${command.name}: command does not accept arguments...`,
     isError: true,
   };
 }
@@ -29,7 +29,7 @@ export function runCommand(
   if (!command) {
     return {
       type: "output",
-      text: `(error) ${name}: command not found...`,
+      text: `${name}: command not found...`,
       isError: true,
     };
   }

@@ -64,7 +64,15 @@ describe("command flags", () => {
   it("keeps rm's declared flags without advertising help", () => {
     const rm = registryCommand("rm");
 
-    expect(getDeclaredFlags(rm).map((flag) => flag.name)).toEqual(["-r", "-R"]);
-    expect(getCommandFlags(rm).map((flag) => flag.name)).toEqual(["-r", "-R"]);
+    expect(getDeclaredFlags(rm).map((flag) => flag.name)).toEqual([
+      "-r",
+      "-R",
+      "-f",
+    ]);
+    expect(getCommandFlags(rm).map((flag) => flag.name)).toEqual([
+      "-r",
+      "-R",
+      "-f",
+    ]);
   });
 });

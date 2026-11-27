@@ -130,6 +130,44 @@ describe("useTerminalShell", () => {
     expect(result.current.entries).toHaveLength(entryCount);
   });
 
+  it("keeps filesystem deletions visible to later commands", () => {
+    const { result } = setup();
+    const lastOutput = () =>
+      result.current.entries.findLast((entry) => entry.kind === "output")?.text;
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(lastOutput()).toContain("Documents");
+
+    act(() => result.current.changeValue("rm -rf Documents"));
+    act(() => result.current.runValue());
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(lastOutput()).not.toContain("Documents");
+  });
+
+  it("keeps the working directory when a protected path is removed", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("rm -rf /home/"));
+    act(() => result.current.runValue());
+    expect(result.current.entries.at(-1)?.text).toContain("Permission denied");
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(result.current.entries.at(-1)?.text).toContain("Documents");
+  });
+
+  it("completes a path from the live filesystem", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("ls .ba"));
+    act(() => result.current.complete());
+
+    expect(result.current.value).toBe("ls .bashrc ");
+  });
+
   it("exits an active TUI and restores focus", () => {
     const { result, focusInput } = setup();
 

@@ -11,7 +11,7 @@ describe("runCommand", () => {
     const result = runCommand("nope");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe("(error) nope: command not found...");
+      expect(result.text).toBe("nope: command not found...");
       expect(result.isError).toBe(true);
     }
   });
@@ -20,9 +20,7 @@ describe("runCommand", () => {
     const result = runCommand("about extra");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe(
-        "(error) about: command does not accept arguments...",
-      );
+      expect(result.text).toBe("about: command does not accept arguments...");
     }
   });
 
@@ -32,9 +30,7 @@ describe("runCommand", () => {
     const result = runCommand("contact extra");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe(
-        "(error) contact: command does not accept arguments...",
-      );
+      expect(result.text).toBe("contact: command does not accept arguments...");
     }
 
     const help = runCommand("contact -h");
@@ -129,7 +125,7 @@ describe("runCommand", () => {
     expect(invalid.type).toBe("output");
     if (invalid.type === "output") {
       expect(invalid.text).toBe(
-        "(error) theme: expected 'dark', 'light', or 'system'...",
+        "theme: expected 'dark', 'light', or 'system'...",
       );
     }
   });
@@ -221,5 +217,43 @@ describe("runCommand", () => {
 
     const aliasHelp = runCommand("fastfetch -h");
     expect(aliasHelp).toEqual(runCommand("fastfetch"));
+  });
+
+  it("runs ls against the seeded filesystem", () => {
+    expect(runCommand("ls")).toMatchObject({
+      type: "output",
+      text: "Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos",
+    });
+    expect(runCommand("ls -a")).toMatchObject({
+      type: "output",
+      text: ".  ..  .bashrc  .config  .profile  Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos",
+    });
+    expect(runCommand("ls asdf")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "ls: cannot access 'asdf': No such file or directory",
+    });
+  });
+
+  it("runs rm with real shell errors and a filesystem snapshot", () => {
+    expect(runCommand("rm asdf")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "rm: cannot remove 'asdf': No such file or directory",
+    });
+    expect(runCommand("rm -rf /home/")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "rm: cannot remove '/home/': Permission denied",
+    });
+
+    const removed = runCommand("rm Documents/notes.txt");
+    expect(removed.type).toBe("blank");
+    if (removed.type !== "blank" || !removed.filesystem) {
+      throw new Error("Expected a filesystem mutation");
+    }
+    expect(
+      removed.filesystem.has("/home/rizkyfauziilmi/Documents/notes.txt"),
+    ).toBe(false);
   });
 });

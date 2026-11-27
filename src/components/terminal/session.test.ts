@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { createInitialFileSystem, HOME_PATH } from "./filesystem";
 import { createInitialSession, sessionReducer } from "./session";
 
 const output = (text: string) =>
@@ -162,5 +163,33 @@ describe("sessionReducer", () => {
     });
 
     expect(sessionReducer(active, { type: "halt" }).activeTui).toBeNull();
+  });
+
+  it("keeps filesystem mutations across commands and screen clears", () => {
+    const filename = `${HOME_PATH}/Documents/notes.txt`;
+    const filesystem = createInitialFileSystem();
+    const nextFilesystem = new Map(filesystem);
+    nextFilesystem.delete(filename);
+
+    let state = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "rm Documents/notes.txt",
+      result: { type: "blank", filesystem: nextFilesystem },
+    });
+    expect(state.filesystem.has(filename)).toBe(false);
+
+    state = sessionReducer(state, {
+      type: "submit",
+      command: "clear",
+      result: { type: "clear" },
+    });
+    expect(state.filesystem.has(filename)).toBe(false);
+
+    const fresh = sessionReducer(createInitialSession(), {
+      type: "submit",
+      command: "echo hi",
+      result: output("hi"),
+    });
+    expect(fresh.filesystem.has(filename)).toBe(true);
   });
 });

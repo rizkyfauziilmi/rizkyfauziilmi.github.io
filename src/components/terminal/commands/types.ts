@@ -1,12 +1,19 @@
 import type { ThemeMode } from "@/lib/theme";
 
+import type { VirtualFileSystem } from "../filesystem";
+
 export type { ThemeMode } from "@/lib/theme";
 
 export type TuiView = "projects" | "contact" | "cv";
 export type ComponentView = "about" | "help";
 
 export type CommandResult =
-  | { type: "output"; text: string; isError: boolean }
+  | {
+      type: "output";
+      text: string;
+      isError: boolean;
+      filesystem?: VirtualFileSystem;
+    }
   | { type: "component"; view: ComponentView }
   | { type: "tui"; view: TuiView }
   | { type: "download"; url: string; filename: string; text: string }
@@ -15,7 +22,7 @@ export type CommandResult =
   | { type: "shutdown"; delayMs: number; text: string }
   | { type: "shutdown-cancel" }
   | { type: "clear" }
-  | { type: "blank" };
+  | { type: "blank"; filesystem?: VirtualFileSystem };
 
 export type CommandArgument = {
   name: string;
@@ -37,6 +44,7 @@ export type CommandContext = {
   platform: string;
   userAgent: string;
   uptimeMs: number;
+  filesystem: VirtualFileSystem;
 };
 
 export type CommandDefinition = {
