@@ -20,6 +20,32 @@ export type HelpModel = {
 const key = (value: string): HelpTipPart => ({ type: "key", value });
 const text = (value: string): HelpTipPart => ({ type: "text", value });
 
+// Aliases sit beside the command they duplicate instead of drifting far away.
+const ALIAS_SORT_KEY: Record<string, string> = {
+  fastfetch: "neofetch",
+  resume: "cv",
+};
+
+function isAlias(command: CommandDefinition) {
+  return command.name !== helpSortKey(command);
+}
+
+function compareCommands(a: CommandDefinition, b: CommandDefinition) {
+  return (
+    compareText(helpSortKey(a), helpSortKey(b)) ||
+    Number(isAlias(a)) - Number(isAlias(b)) ||
+    compareText(a.name, b.name)
+  );
+}
+
+function compareText(a: string, b: string) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function helpSortKey(command: CommandDefinition) {
+  return ALIAS_SORT_KEY[command.name] ?? command.name;
+}
+
 export const HELP_TIPS: HelpTipPart[][] = [
   [
     key("Tab"),
@@ -44,7 +70,7 @@ export const HELP_TIPS: HelpTipPart[][] = [
     key("↑"),
     text(" to filter matches"),
   ],
-  [text("classic Unix troublemakers still hang around here")],
+  [text("classic Unix troublemakers are listed here too")],
 ];
 
 export function getCommandLabel(command: CommandDefinition) {
@@ -57,9 +83,10 @@ export function getCommandLabel(command: CommandDefinition) {
 export function buildHelpModel(commands: CommandDefinition[]): HelpModel {
   return {
     version: __APP_VERSION__,
-    // Hidden commands are still runnable, but never advertised in help.
+    // Hidden commands remain runnable without being advertised in help.
     commands: commands
       .filter((command) => !command.hidden)
+      .sort(compareCommands)
       .map((command) => ({
         name: command.name,
         usageArgs: command.usageArgs,

@@ -39,10 +39,12 @@ describe("about suggestions", () => {
   });
 });
 
-describe("hidden easter eggs", () => {
-  it("marks fastfetch, sudo, rm and whoami as hidden", () => {
+describe("easter eggs", () => {
+  it("lists fastfetch, sudo, rm and whoami as visible commands", () => {
     for (const name of ["fastfetch", "sudo", "rm", "whoami"]) {
-      expect(findCommand(name).hidden).toBe(true);
+      const command = findCommand(name);
+      expect(command.hidden).toBeUndefined();
+      expect(command.acceptsArgs).toBe(true);
     }
   });
 

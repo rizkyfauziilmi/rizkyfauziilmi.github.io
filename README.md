@@ -26,27 +26,34 @@ Open the URL printed by Vite. Production output goes to `dist/`. `pnpm install` 
 
 ## Commands
 
-| Command                         | Description                                       |
-| ------------------------------- | ------------------------------------------------- |
-| `about`                         | Show the avatar, role, and bio                    |
-| `cd [path]`                     | Change directory (prompt follows the path)        |
-| `clear`                         | Clear the screen (history survives)               |
-| `echo [text...]`                | Print text; quotes group words                    |
-| `help`                          | List public commands and tips                     |
-| `ls [-a] [path...]`             | List the imitation filesystem (`-a` shows hidden) |
-| `neofetch`                      | Show system and portfolio info                    |
-| `projects`                      | Browse projects in an interactive TUI             |
-| `contact`                       | Browse contact channels in an interactive TUI     |
-| `cv` / `resume`                 | View the CV PDF, or use `--download`              |
-| `reboot`                        | Reload the page                                   |
-| `shutdown <now\|+N\|HH:MM\|-c>` | Close now, schedule (`+5`, `23:30`), or cancel    |
-| `theme <dark\|light\|system>`   | Switch the color theme                            |
+| Command                         | Description                                        |
+| ------------------------------- | -------------------------------------------------- |
+| `about`                         | Show the avatar, role, and bio                     |
+| `cat [-n] FILE...`              | Print file contents (`-n` numbers lines)           |
+| `cd [path]`                     | Change directory (prompt follows the path)         |
+| `clear`                         | Clear the screen (history survives)                |
+| `contact`                       | Browse contact channels in an interactive TUI      |
+| `cv` / `resume`                 | View the CV PDF, or use `--download`               |
+| `echo [text...]`                | Print text; `>`/`>>` writes to a file              |
+| `fastfetch`                     | Alias for `neofetch`                               |
+| `help`                          | List public commands and tips                      |
+| `ls [-a] [path...]`             | List the imitation filesystem (`-a` shows hidden)  |
+| `mkdir [-p] DIRECTORY...`       | Create directories (`-p` creates parents)          |
+| `neofetch`                      | Show system and portfolio info                     |
+| `projects`                      | Browse projects in an interactive TUI              |
+| `reboot`                        | Reload the page                                    |
+| `rm [-r\|-R\|-f] FILE...`       | Remove files or directories (`-r` for directories) |
+| `shutdown <now\|+N\|HH:MM\|-c>` | Close now, schedule (`+5`, `23:30`), or cancel     |
+| `sudo`                          | Try superuser access (joke response)               |
+| `theme <dark\|light\|system>`   | Switch the color theme                             |
+| `touch FILE...`                 | Create empty files                                 |
+| `whoami`                        | Print the current user                             |
 
-Run `help` or `<command> -h` for details; `echo` and hidden commands are exceptions. Hidden eggs `fastfetch`, `sudo`, `rm`, and `whoami` work but stay out of help. The imitation home starts with a standard Linux layout (dotfiles and folders like `Desktop`, `Documents`, `Downloads`). `cd` changes the working directory for `ls`, `rm`, Tab completion, and the prompt. `rm` works without sudo only inside `~` (`-r` for directories); other paths return `Permission denied` because `sudo` is unavailable. A reload restores the original tree and directory.
+Run `help` or `<command> -h` for details; every listed command, including the easter eggs `fastfetch`, `rm`, `sudo`, and `whoami`, also accepts `--help` and `help`. The imitation home starts with a standard Linux layout (dotfiles and folders like `Desktop`, `Documents`, `Downloads`), with readable sample text in `.bashrc`, `.profile`, and `Documents/notes.txt`. `cd` changes the working directory for path commands, Tab completion, and the prompt. `mkdir`, `touch`, `echo >`, `echo >>`, and `rm` work without sudo only inside `~`; other write paths return `Permission denied` because `sudo` is unavailable. `cat` may read any path. A reload restores the original tree and directory.
 
 ## Shortcuts
 
-- `Tab` completes commands, flags, argument values, and paths for `cd`/`ls`/`rm`; press again to cycle matches, `Shift+Tab` to go back.
+- `Tab` completes commands, flags, argument values, and paths for `cat`/`cd`/`ls`/`mkdir`/`rm`/`touch`; press again to cycle matches, `Shift+Tab` to go back.
 - `Enter` accepts a highlighted match; press again to run it. `Escape` cancels it.
 - `Ctrl+?` (or `Ctrl+/`) opens help. `Ctrl+C` aborts the current line with `^C` and opens a new prompt; the command is not run or saved to history. `↑`/`↓` browse history; type a prefix then `↑` to filter it.
 - In the `projects` and `contact` TUIs: `↑`/`↓` or `j`/`k` move, `Enter` opens detail. In detail, `←`/`→` or `h`/`l` switch actions, `Enter` activates, `Esc`/`q` goes back, and `q` in the list or `Ctrl+C` anywhere exits. Detail actions copy the value (success toast) or open the link. Header buttons go back: detail → list, list → terminal.

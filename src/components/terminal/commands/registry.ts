@@ -2,16 +2,22 @@ import { isThemeMode } from "@/lib/theme";
 
 import { CV, formatCvUpdatedAt } from "../data";
 import {
+  createDirectory,
+  createFile,
   isUserWritable,
   listDirectory,
   lookupNode,
+  normalizePath,
+  readFile,
   removeNode,
+  writeFile,
   type VirtualFileSystem,
+  type WriteError,
 } from "../filesystem";
 import { buildFetchOutput } from "./fetch";
 import { buildCommandHelp } from "./help";
 import { parseShutdown, SHUTDOWN_ERROR } from "./shutdown";
-import type { CommandDefinition, CommandResult } from "./types";
+import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
 const SHUTDOWN_COMMAND: CommandDefinition = {
   name: "shutdown",
@@ -126,6 +132,277 @@ const CONTACT_COMMAND: CommandDefinition = {
   description: "Find me and get in touch",
   suggestInAbout: true,
   run: () => ({ type: "tui", view: "contact" }),
+};
+
+const WRITE_ERROR_TEXT: Record<WriteError | "exists", string> = {
+  "parent-not-found": "No such file or directory",
+  "not-a-directory": "Not a directory",
+  "is-directory": "Is a directory",
+  exists: "File exists",
+};
+
+function writeErrorText(error: WriteError | "exists") {
+  return WRITE_ERROR_TEXT[error];
+}
+
+function runEchoCommand(args: string[], context: CommandContext) {
+  const text = args.join(" ");
+  const redirect = context.redirect;
+  if (!redirect) {
+    return { type: "output" as const, text, isError: false };
+  }
+  if (!redirect.target) {
+    return {
+      type: "output" as const,
+      text: "echo: missing redirect target",
+      isError: true,
+    };
+  }
+  if (redirect.ambiguous) {
+    return {
+      type: "output" as const,
+      text: "echo: ambiguous redirect",
+      isError: true,
+    };
+  }
+
+  const path = normalizePath(redirect.target, context.cwd);
+  if (!isUserWritable(path)) {
+    return {
+      type: "output" as const,
+      text: `echo: cannot redirect to '${redirect.target}': Permission denied`,
+      isError: true,
+    };
+  }
+
+  const found = lookupNode(context.filesystem, redirect.target, context.cwd);
+  if (found?.node.kind === "directory") {
+    return {
+      type: "output" as const,
+      text: `echo: cannot redirect to '${redirect.target}': Is a directory`,
+      isError: true,
+    };
+  }
+
+  const written = writeFile(
+    context.filesystem,
+    path,
+    text,
+    redirect.operator === ">>",
+  );
+  if (written.error) {
+    return {
+      type: "output" as const,
+      text: `echo: cannot redirect to '${redirect.target}': ${writeErrorText(written.error)}`,
+      isError: true,
+    };
+  }
+
+  return { type: "blank" as const, filesystem: written.filesystem };
+}
+
+const ECHO_COMMAND: CommandDefinition = {
+  name: "echo",
+  description: "Print text to the terminal",
+  usageArgs: "[text...]",
+  arguments: [
+    {
+      name: "text",
+      description: "Words to print; quotes group spaces",
+    },
+  ],
+  examples: [
+    'echo "hello world"',
+    'echo "Halo" > notes/hello.txt',
+    'echo "Baris 2" >> notes/hello.txt',
+    "cat notes/hello.txt",
+  ],
+  acceptsArgs: true,
+  run: (args, context) => runEchoCommand(args, context),
+};
+
+function runMkdirCommand(args: string[], context: CommandContext) {
+  const parents = args.some((arg) => arg === "-p" || arg === "--parents");
+  const paths = args.filter((arg) => !arg.startsWith("-"));
+
+  if (paths.length === 0) {
+    return {
+      type: "output" as const,
+      text: "mkdir: missing operand",
+      isError: true,
+    };
+  }
+
+  let filesystem = context.filesystem;
+  const errors: string[] = [];
+  for (const target of paths) {
+    const path = normalizePath(target, context.cwd);
+    if (!isUserWritable(path)) {
+      errors.push(
+        `mkdir: cannot create directory '${target}': Permission denied`,
+      );
+      continue;
+    }
+
+    const found = lookupNode(filesystem, target, context.cwd);
+    if (found) {
+      if (!(parents && found.node.kind === "directory")) {
+        errors.push(`mkdir: cannot create directory '${target}': File exists`);
+      }
+      continue;
+    }
+
+    const created = createDirectory(filesystem, path, parents);
+    if (created.error) {
+      errors.push(
+        `mkdir: cannot create directory '${target}': ${writeErrorText(created.error)}`,
+      );
+      continue;
+    }
+    filesystem = created.filesystem;
+  }
+
+  if (errors.length === 0) return { type: "blank" as const, filesystem };
+  return {
+    type: "output" as const,
+    text: errors.join("\n"),
+    isError: true,
+    filesystem,
+  };
+}
+
+const MKDIR_COMMAND: CommandDefinition = {
+  name: "mkdir",
+  description: "Create directories",
+  usageArgs: "[-p] DIRECTORY...",
+  arguments: [{ name: "DIRECTORY", description: "One or more directories" }],
+  flags: [
+    {
+      name: "-p",
+      description: "Create missing parents and accept existing directories",
+    },
+    { name: "--parents", description: "Alias for -p" },
+  ],
+  examples: ["mkdir notes", "mkdir -p projects/web/src"],
+  acceptsArgs: true,
+  run: (args, context) => runMkdirCommand(args, context),
+};
+
+function runTouchCommand(args: string[], context: CommandContext) {
+  const paths = args.filter((arg) => !arg.startsWith("-"));
+
+  if (paths.length === 0) {
+    return {
+      type: "output" as const,
+      text: "touch: missing operand",
+      isError: true,
+    };
+  }
+
+  let filesystem = context.filesystem;
+  const errors: string[] = [];
+  for (const target of paths) {
+    const path = normalizePath(target, context.cwd);
+    if (!isUserWritable(path)) {
+      errors.push(`touch: cannot touch '${target}': Permission denied`);
+      continue;
+    }
+
+    const created = createFile(filesystem, path);
+    if (created.error) {
+      errors.push(
+        `touch: cannot touch '${target}': ${writeErrorText(created.error)}`,
+      );
+      continue;
+    }
+    filesystem = created.filesystem;
+  }
+
+  if (errors.length === 0) return { type: "blank" as const, filesystem };
+  return {
+    type: "output" as const,
+    text: errors.join("\n"),
+    isError: true,
+    filesystem,
+  };
+}
+
+const TOUCH_COMMAND: CommandDefinition = {
+  name: "touch",
+  description: "Create empty files",
+  usageArgs: "FILE...",
+  arguments: [{ name: "FILE", description: "One or more files" }],
+  examples: ["touch notes.txt", "touch todo.txt done.txt"],
+  acceptsArgs: true,
+  run: (args, context) => runTouchCommand(args, context),
+};
+
+function runCatCommand(args: string[], context: CommandContext) {
+  const numbered = args.some((arg) => arg === "-n" || arg === "--number");
+  const paths = args.filter((arg) => !arg.startsWith("-"));
+
+  if (paths.length === 0) {
+    return {
+      type: "output" as const,
+      text: "cat: missing operand",
+      isError: true,
+    };
+  }
+
+  const lines: string[] = [];
+  const errors: string[] = [];
+  let lineNumber = 1;
+  for (const target of paths) {
+    const found = lookupNode(context.filesystem, target, context.cwd);
+    if (!found) {
+      errors.push(`cat: ${target}: No such file or directory`);
+      continue;
+    }
+
+    const read = readFile(context.filesystem, found.path);
+    if (read.error === "is-directory") {
+      errors.push(`cat: ${target}: Is a directory`);
+      continue;
+    }
+    if (!read.content) continue;
+
+    lines.push(
+      numbered
+        ? read.content
+            .split("\n")
+            .map((line) => `${String(lineNumber++).padStart(6, " ")}\t${line}`)
+            .join("\n")
+        : read.content,
+    );
+  }
+
+  if (errors.length > 0) {
+    return {
+      type: "output" as const,
+      text: [...lines, ...errors].join("\n"),
+      isError: true,
+    };
+  }
+  if (lines.length === 0) return { type: "blank" as const };
+  return {
+    type: "output" as const,
+    text: lines.join("\n"),
+    isError: false,
+  };
+}
+
+const CAT_COMMAND: CommandDefinition = {
+  name: "cat",
+  description: "Print file contents",
+  usageArgs: "[-n] FILE...",
+  arguments: [{ name: "FILE", description: "One or more files" }],
+  flags: [
+    { name: "-n", description: "Number all output lines" },
+    { name: "--number", description: "Alias for -n" },
+  ],
+  examples: ["cat Documents/notes.txt", "cat -n Documents/notes.txt"],
+  acceptsArgs: true,
+  run: (args, context) => runCatCommand(args, context),
 };
 
 const CD_COMMAND: CommandDefinition = {
@@ -267,7 +544,6 @@ function runRmCommand(
 const RM_COMMAND: CommandDefinition = {
   name: "rm",
   description: "Remove files or directories",
-  hidden: true,
   flags: [
     { name: "-r", description: "Remove directories recursively" },
     { name: "-R", description: "Alias for -r" },
@@ -289,18 +565,9 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Clear the terminal screen",
     run: () => ({ type: "clear" }),
   },
+  CAT_COMMAND,
   CD_COMMAND,
-  {
-    name: "echo",
-    description: "Print text to the terminal",
-    usageArgs: "[text...]",
-    arguments: [
-      { name: "text", description: "Words to print; quotes group spaces" },
-    ],
-    examples: ['echo "hello world"'],
-    acceptsArgs: true,
-    run: (args) => ({ type: "output", text: args.join(" "), isError: false }),
-  },
+  ECHO_COMMAND,
   {
     name: "help",
     description: "Display this help message",
@@ -308,6 +575,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     run: () => ({ type: "component", view: "help" }),
   },
   LS_COMMAND,
+  MKDIR_COMMAND,
+  TOUCH_COMMAND,
   FETCH_COMMAND,
   {
     name: "projects",
@@ -355,12 +624,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     ...FETCH_COMMAND,
     name: "fastfetch",
     description: "Alias for neofetch",
-    hidden: true,
+    acceptsArgs: true,
   },
   {
     name: "sudo",
     description: "Run a command as superuser",
-    hidden: true,
+    acceptsArgs: true,
     run: () => ({
       type: "output",
       text: "sudo: rizkyfauziilmi is not in the sudoers file. This incident has been reported. 🐾",
@@ -371,7 +640,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "whoami",
     description: "Print the current user",
-    hidden: true,
+    acceptsArgs: true,
     run: () => ({
       type: "output",
       text: "guest — but you can be my next teammate. Try 'about' to meet me.",

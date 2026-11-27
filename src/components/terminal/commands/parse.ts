@@ -66,3 +66,53 @@ export function tokenizeWithSpans(input: string): TokenSpan[] {
 export function tokenize(input: string): string[] {
   return tokenizeWithSpans(input).map((token) => token.value);
 }
+
+export type RedirectOperator = ">" | ">>";
+
+export type ParsedRedirect = {
+  /** Line without the redirect operator or its target. */
+  command: string;
+  redirect?: {
+    operator: RedirectOperator;
+    target: string;
+    ambiguous: boolean;
+  };
+};
+
+/**
+ * Split an output redirect from the command line. Operators inside quotes are
+ * literal text, so `echo "a > b"` never becomes a redirect.
+ */
+export function parseRedirect(raw: string): ParsedRedirect {
+  let quote: "'" | '"' | null = null;
+  let operator: RedirectOperator | null = null;
+  let at = -1;
+
+  for (let index = 0; index < raw.length; index += 1) {
+    const char = raw[index];
+
+    if (quote) {
+      if (char === quote) quote = null;
+      continue;
+    }
+
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+
+    if (char === ">") {
+      operator = raw[index + 1] === ">" ? ">>" : ">";
+      at = index;
+      break;
+    }
+  }
+
+  if (!operator) return { command: raw };
+
+  const [target = "", ...extra] = tokenize(raw.slice(at + operator.length));
+  return {
+    command: raw.slice(0, at),
+    redirect: { operator, target, ambiguous: extra.length > 0 },
+  };
+}

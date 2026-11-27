@@ -22,8 +22,10 @@ describe("HelpOutput", () => {
     expect(
       screen.getByText("Browse projects in an interactive TUI"),
     ).toBeTruthy();
-    expect(screen.queryByText("sudo")).toBeNull();
-    expect(screen.queryByText("fastfetch")).toBeNull();
+    expect(screen.getByText("fastfetch")).toBeTruthy();
+    expect(screen.getByText("rm")).toBeTruthy();
+    expect(screen.getByText("sudo")).toBeTruthy();
+    expect(screen.getByText("whoami")).toBeTruthy();
   });
 
   it("sizes the command column from the registry labels", () => {

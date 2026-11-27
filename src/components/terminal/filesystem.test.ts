@@ -1,22 +1,44 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createDirectory,
+  createFile,
   createInitialFileSystem,
   HOME_PATH,
   isUserWritable,
   listDirectory,
   lookupNode,
   normalizePath,
+  readFile,
   removeNode,
   ROOT_PATH,
+  writeFile,
 } from "./filesystem";
 
+const NOTES = [
+  "Catatan kecil dari portofolio ini.",
+  "",
+  "Coba jalankan:",
+  "  cd Documents",
+  "  ls -a",
+  "  cat -n notes.txt",
+  "",
+  "File baru bisa dibuat dengan touch dan mkdir.",
+].join("\n");
+
 describe("virtual filesystem", () => {
-  it("seeds a Linux-like tree with a standard home directory", () => {
+  it("seeds a Linux-like tree with readable file contents", () => {
     const filesystem = createInitialFileSystem();
 
     expect(filesystem.get(ROOT_PATH)).toEqual({ kind: "directory" });
-    expect(filesystem.get("/etc/hostname")).toEqual({ kind: "file" });
+    expect(filesystem.get("/etc/hostname")).toEqual({
+      kind: "file",
+      content: "portofolio",
+    });
+    expect(filesystem.get(`${HOME_PATH}/Documents/notes.txt`)).toEqual({
+      kind: "file",
+      content: NOTES,
+    });
     expect(listDirectory(filesystem, HOME_PATH)).toEqual([
       "Desktop",
       "Documents",
@@ -45,7 +67,7 @@ describe("virtual filesystem", () => {
   it("looks up nodes from the fixed home directory", () => {
     const filesystem = createInitialFileSystem();
 
-    expect(lookupNode(filesystem, ".bashrc")).toEqual({
+    expect(lookupNode(filesystem, ".bashrc")).toMatchObject({
       path: `${HOME_PATH}/.bashrc`,
       node: { kind: "file" },
     });
@@ -129,5 +151,93 @@ describe("virtual filesystem", () => {
       false,
     );
     expect(result.filesystem.has(`${HOME_PATH}/Desktop`)).toBe(true);
+  });
+
+  it("creates directories and reports conflicts", () => {
+    const filesystem = createInitialFileSystem();
+    const created = createDirectory(filesystem, `${HOME_PATH}/notes`);
+
+    expect(created.error).toBeUndefined();
+    expect(created.filesystem.get(`${HOME_PATH}/notes`)).toEqual({
+      kind: "directory",
+    });
+    expect(filesystem.has(`${HOME_PATH}/notes`)).toBe(false);
+    expect(createDirectory(filesystem, `${HOME_PATH}/a/b`).error).toBe(
+      "parent-not-found",
+    );
+    expect(createDirectory(filesystem, `${HOME_PATH}/.bashrc/sub`).error).toBe(
+      "not-a-directory",
+    );
+    expect(createDirectory(filesystem, `${HOME_PATH}/Desktop`).error).toBe(
+      "exists",
+    );
+  });
+
+  it("builds missing parents with the recursive flag", () => {
+    const filesystem = createInitialFileSystem();
+    const result = createDirectory(
+      filesystem,
+      `${HOME_PATH}/projects/web/src`,
+      true,
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(result.filesystem.get(`${HOME_PATH}/projects`)).toEqual({
+      kind: "directory",
+    });
+    expect(result.filesystem.get(`${HOME_PATH}/projects/web/src`)).toEqual({
+      kind: "directory",
+    });
+  });
+
+  it("creates empty files and leaves existing nodes untouched", () => {
+    const filesystem = createInitialFileSystem();
+    const created = createFile(filesystem, `${HOME_PATH}/todo.txt`);
+
+    expect(created.error).toBeUndefined();
+    expect(created.filesystem.get(`${HOME_PATH}/todo.txt`)).toEqual({
+      kind: "file",
+      content: "",
+    });
+    expect(
+      createFile(filesystem, `${HOME_PATH}/Documents/notes.txt`).filesystem,
+    ).toBe(filesystem);
+    expect(createFile(filesystem, `${HOME_PATH}/Desktop`).filesystem).toBe(
+      filesystem,
+    );
+    expect(createFile(filesystem, `${HOME_PATH}/a/b.txt`).error).toBe(
+      "parent-not-found",
+    );
+  });
+
+  it("replaces and appends file contents", () => {
+    const filesystem = createInitialFileSystem();
+    const path = `${HOME_PATH}/hello.txt`;
+    const created = writeFile(filesystem, path, "Halo");
+
+    expect(created.filesystem.get(path)).toEqual({
+      kind: "file",
+      content: "Halo",
+    });
+
+    const appended = writeFile(created.filesystem, path, "Baris 2", true);
+    expect(appended.filesystem.get(path)).toEqual({
+      kind: "file",
+      content: "Halo\nBaris 2",
+    });
+    expect(writeFile(filesystem, `${HOME_PATH}/Desktop`, "x").error).toBe(
+      "is-directory",
+    );
+  });
+
+  it("reads stored file contents", () => {
+    const filesystem = createInitialFileSystem();
+    const path = `${HOME_PATH}/Documents/notes.txt`;
+
+    expect(readFile(filesystem, path)).toEqual({ content: NOTES });
+    expect(readFile(filesystem, `${HOME_PATH}/Documents`)).toEqual({
+      error: "is-directory",
+    });
+    expect(readFile(filesystem, "asdf")).toEqual({ error: "not-found" });
   });
 });

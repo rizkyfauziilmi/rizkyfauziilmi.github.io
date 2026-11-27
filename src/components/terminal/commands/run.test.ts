@@ -83,11 +83,16 @@ describe("runCommand", () => {
     },
   );
 
-  it("lets echo consume help-like arguments literally", () => {
-    expect(runCommand("echo -h")).toMatchObject({
-      type: "output",
-      text: "-h",
-    });
+  it("shows echo help for flags but keeps other words literal", () => {
+    for (const command of ["echo -h", "echo --help"]) {
+      const result = runCommand(command);
+      expect(result.type).toBe("output");
+      if (result.type === "output") {
+        expect(result.text).toContain("Usage: echo [text...]");
+        expect(result.text).toContain('echo "Halo" > notes/hello.txt');
+      }
+    }
+
     expect(runCommand("echo help")).toMatchObject({
       type: "output",
       text: "help",
@@ -98,22 +103,29 @@ describe("runCommand", () => {
     });
   });
 
-  it("keeps hidden eggs silent on every help variant", () => {
-    for (const command of [
-      "sudo -h",
-      "sudo --h",
-      "sudo -help",
-      "whoami --help",
-      "rm -h",
-    ]) {
-      const result = runCommand(command);
-      expect(result.type).toBe("output");
-      if (result.type === "output") {
-        expect(result.text).not.toContain("Usage:");
-        expect(result.text).not.toContain("Flags:");
-      }
-    }
+  it("rejects redirection for commands other than echo", () => {
+    expect(runCommand("ls > out.txt")).toMatchObject({
+      type: "output",
+      text: "ls: redirection is not supported...",
+      isError: true,
+    });
   });
+
+  it.each(["fastfetch", "rm", "sudo", "whoami"])(
+    "shows help for the %s easter egg",
+    (name) => {
+      for (const variant of [`${name} -h`, `${name} --help`, `${name} help`]) {
+        const result = runCommand(variant);
+        expect(result.type).toBe("output");
+        if (result.type === "output") {
+          expect(result.text).toContain("Usage:");
+          expect(result.text).toContain("Flags:");
+          expect(result.text).toContain("-h");
+          expect(result.text).toContain("--help");
+        }
+      }
+    },
+  );
 
   it("validates theme arguments", () => {
     expect(runCommand("theme dark")).toMatchObject({
@@ -212,11 +224,15 @@ describe("runCommand", () => {
     }
   });
 
-  it("keeps the fastfetch alias hidden from per-command help", () => {
+  it("shows per-command help for the fastfetch alias", () => {
     expect(runCommand("help")).toEqual({ type: "component", view: "help" });
 
     const aliasHelp = runCommand("fastfetch -h");
-    expect(aliasHelp).toEqual(runCommand("fastfetch"));
+    expect(aliasHelp.type).toBe("output");
+    if (aliasHelp.type === "output") {
+      expect(aliasHelp.text).toContain("Alias for neofetch");
+      expect(aliasHelp.text).toContain("Usage: fastfetch");
+    }
   });
 
   it("runs ls against the seeded filesystem", () => {

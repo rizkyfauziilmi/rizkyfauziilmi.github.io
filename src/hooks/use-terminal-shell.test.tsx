@@ -191,6 +191,31 @@ describe("useTerminalShell", () => {
     expect(result.current.value).toBe("ls .bashrc ");
   });
 
+  it("supports a create, write, read, and remove workflow", () => {
+    const { result } = setup();
+    const run = (command: string) => {
+      act(() => result.current.changeValue(command));
+      act(() => result.current.runValue());
+    };
+    const lastOutput = () =>
+      result.current.entries.findLast((entry) => entry.kind === "output")?.text;
+
+    run("mkdir notes");
+    run("touch notes/hello.txt");
+    run('echo "Halo" > notes/hello.txt');
+    run('echo "Baris 2" >> notes/hello.txt');
+    run("cat -n notes/hello.txt");
+
+    expect(lastOutput()).toBe("     1\tHalo\n     2\tBaris 2");
+
+    run("rm -r notes");
+    run("cat notes/hello.txt");
+
+    expect(lastOutput()).toBe(
+      "cat: notes/hello.txt: No such file or directory",
+    );
+  });
+
   it("exits an active TUI and restores focus", () => {
     const { result, focusInput } = setup();
 

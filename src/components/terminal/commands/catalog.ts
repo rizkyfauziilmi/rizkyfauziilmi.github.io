@@ -15,7 +15,7 @@ export const KNOWN_COMMAND_NAMES: ReadonlySet<string> = new Set(
   COMMAND_DEFINITIONS.map((command) => command.name),
 );
 
-const PATH_COMMANDS = new Set(["cd", "ls", "rm"]);
+const PATH_COMMANDS = new Set(["cat", "cd", "ls", "mkdir", "rm", "touch"]);
 
 function pathCandidates(
   filesystem: VirtualFileSystem,
