@@ -6,7 +6,8 @@ import {
   getCompletionSpan,
   type CompletionCatalog,
 } from "./complete";
-import { COMMAND_CATALOG } from "./catalog";
+import { COMMAND_CATALOG, createCompletionCatalog } from "./catalog";
+import { createInitialFileSystem } from "../filesystem";
 import type { CommandDefinition } from "./types";
 
 const command = (
@@ -26,9 +27,7 @@ function catalog(
     commands: new Map(commands.map((item) => [item.name, item])),
     flagsFor: (item, isFirstArgument) => [
       ...(item.flags ?? []).map((flag) => flag.name),
-      ...(isFirstArgument && !item.hidden && item.name !== "echo"
-        ? ["-h", "--help"]
-        : []),
+      ...(isFirstArgument && !item.hidden ? ["-h", "--help"] : []),
     ],
   };
 }
@@ -114,7 +113,7 @@ describe("completeCommand", () => {
     ]);
   });
 
-  it("includes hidden runnable commands from the registry", () => {
+  it("includes easter egg commands from the registry", () => {
     expect(completeCommand("s", 1, COMMAND_CATALOG).suggestions).toContain(
       "sudo",
     );
@@ -169,21 +168,21 @@ describe("completeCommand", () => {
     });
   });
 
-  it("does not complete free-form echo text or its help flags", () => {
+  it("completes echo help flags but not free-form text", () => {
     const echo = command({
       name: "echo",
       arguments: [{ name: "text", description: "Words to print" }],
     });
 
     expect(completeCommand("echo ", 5, catalog(["echo"], [echo]))).toEqual({
-      value: "echo ",
-      caret: 5,
-      suggestions: [],
+      value: "echo -",
+      caret: 6,
+      suggestions: ["--help", "-h"],
     });
     expect(completeCommand("echo -", 6, catalog(["echo"], [echo]))).toEqual({
       value: "echo -",
       caret: 6,
-      suggestions: [],
+      suggestions: ["--help", "-h"],
     });
   });
 
@@ -243,6 +242,92 @@ describe("completeCommand", () => {
       caret: 6,
       suggestions: [],
     });
+  });
+
+  it("completes file paths for ls from the filesystem snapshot", () => {
+    const withFiles = createCompletionCatalog(createInitialFileSystem());
+
+    expect(completeCommand("ls Doc", 6, withFiles)).toMatchObject({
+      value: "ls Documents/ ",
+      suggestions: [],
+    });
+    expect(completeCommand("ls .ba", 6, withFiles)).toMatchObject({
+      value: "ls .bashrc ",
+      suggestions: [],
+    });
+    expect(completeCommand("ls ab", 5, withFiles).suggestions).toEqual([]);
+  });
+
+  it("completes cd paths relative to the current directory", () => {
+    const withFiles = createCompletionCatalog(
+      createInitialFileSystem(),
+      "/home/rizkyfauziilmi/Documents",
+    );
+
+    expect(completeCommand("cd no", 5, withFiles)).toMatchObject({
+      value: "cd notes.txt ",
+      suggestions: [],
+    });
+    expect(
+      completeCommand(
+        "cd Doc",
+        6,
+        createCompletionCatalog(createInitialFileSystem()),
+      ),
+    ).toMatchObject({ value: "cd Documents/ ", suggestions: [] });
+  });
+
+  it("completes paths for cat, mkdir, and touch from the live tree", () => {
+    const withFiles = createCompletionCatalog(
+      createInitialFileSystem(),
+      "/home/rizkyfauziilmi/Documents",
+    );
+
+    expect(completeCommand("cat no", 6, withFiles)).toMatchObject({
+      value: "cat notes.txt ",
+      suggestions: [],
+    });
+    expect(completeCommand("mkdir Doc", 9, withFiles)).toEqual({
+      value: "mkdir Doc",
+      caret: 9,
+      suggestions: [],
+    });
+    expect(completeCommand("mkdir -", 7, withFiles).suggestions).toEqual([
+      "--help",
+      "--parents",
+      "-h",
+      "-p",
+    ]);
+    expect(completeCommand("touch /etc/h", 12, withFiles)).toMatchObject({
+      value: "touch /etc/hostname ",
+      suggestions: [],
+    });
+  });
+
+  it("completes nested absolute paths for rm without losing flags", () => {
+    const withFiles = createCompletionCatalog(createInitialFileSystem());
+
+    expect(completeCommand("rm /etc/h", 9, withFiles)).toMatchObject({
+      value: "rm /etc/hostname ",
+      suggestions: [],
+    });
+    expect(completeCommand("rm -", 4, withFiles).suggestions).toEqual([
+      "--help",
+      "-R",
+      "-f",
+      "-h",
+      "-r",
+    ]);
+  });
+
+  it("follows deletions in a newer filesystem snapshot", () => {
+    const filesystem = createInitialFileSystem();
+    const withoutDocuments = new Map(filesystem);
+    withoutDocuments.delete("/home/rizkyfauziilmi/Documents");
+
+    expect(
+      completeCommand("ls Doc", 6, createCompletionCatalog(withoutDocuments)),
+    ).toEqual({ value: "ls Doc", caret: 6, suggestions: [] });
   });
 });
 

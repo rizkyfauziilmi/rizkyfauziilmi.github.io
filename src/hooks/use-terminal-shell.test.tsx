@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ThemeProvider } from "@/components/theme";
+import { PROMPT } from "@/components/terminal/constants";
 import { useTerminalShell } from "./use-terminal-shell";
 
 function Wrapper({ children }: { children: ReactNode }) {
@@ -46,7 +47,7 @@ describe("useTerminalShell", () => {
     expect(result.current.value).toBe("");
     expect(focusInput).toHaveBeenCalledTimes(1);
     expect(result.current.entries).toEqual([
-      { id: 0, kind: "input", text: "asdf^C" },
+      { id: 0, kind: "input", text: "asdf^C", prompt: PROMPT },
     ]);
   });
 
@@ -128,6 +129,91 @@ describe("useTerminalShell", () => {
     expect(accepted).toBe(true);
     expect(result.current.suggestions).toEqual([]);
     expect(result.current.entries).toHaveLength(entryCount);
+  });
+
+  it("keeps filesystem deletions visible to later commands", () => {
+    const { result } = setup();
+    const lastOutput = () =>
+      result.current.entries.findLast((entry) => entry.kind === "output")?.text;
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(lastOutput()).toContain("Documents");
+
+    act(() => result.current.changeValue("rm -rf Documents"));
+    act(() => result.current.runValue());
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(lastOutput()).not.toContain("Documents");
+  });
+
+  it("keeps the working directory when a protected path is removed", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("rm -rf /home/"));
+    act(() => result.current.runValue());
+    expect(result.current.entries.at(-1)?.text).toContain("Permission denied");
+
+    act(() => result.current.changeValue("ls"));
+    act(() => result.current.runValue());
+    expect(result.current.entries.at(-1)?.text).toContain("Documents");
+  });
+
+  it("updates the prompt and relative completion after cd", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("cd Documents"));
+    act(() => result.current.runValue());
+
+    expect(result.current.cwd).toBe("/home/rizkyfauziilmi/Documents");
+    // The submitted line keeps the prompt it was typed at.
+    expect(result.current.entries.at(-1)?.prompt).toBe(PROMPT);
+
+    act(() => result.current.changeValue("ls no"));
+    act(() => result.current.complete());
+    expect(result.current.value).toBe("ls notes.txt ");
+
+    act(() => result.current.changeValue("cd .."));
+    act(() => result.current.runValue());
+    expect(result.current.cwd).toBe("/home/rizkyfauziilmi");
+    expect(result.current.entries.at(-1)?.prompt).toBe(
+      "rizkyfauziilmi@portofolio:~/Documents$",
+    );
+  });
+
+  it("completes a path from the live filesystem", () => {
+    const { result } = setup();
+
+    act(() => result.current.changeValue("ls .ba"));
+    act(() => result.current.complete());
+
+    expect(result.current.value).toBe("ls .bashrc ");
+  });
+
+  it("supports a create, write, read, and remove workflow", () => {
+    const { result } = setup();
+    const run = (command: string) => {
+      act(() => result.current.changeValue(command));
+      act(() => result.current.runValue());
+    };
+    const lastOutput = () =>
+      result.current.entries.findLast((entry) => entry.kind === "output")?.text;
+
+    run("mkdir notes");
+    run("touch notes/hello.txt");
+    run('echo "Halo" > notes/hello.txt');
+    run('echo "Baris 2" >> notes/hello.txt');
+    run("cat -n notes/hello.txt");
+
+    expect(lastOutput()).toBe("     1\tHalo\n     2\tBaris 2");
+
+    run("rm -r notes");
+    run("cat notes/hello.txt");
+
+    expect(lastOutput()).toBe(
+      "cat: notes/hello.txt: No such file or directory",
+    );
   });
 
   it("exits an active TUI and restores focus", () => {

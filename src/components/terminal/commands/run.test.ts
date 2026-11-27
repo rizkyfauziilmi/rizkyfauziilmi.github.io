@@ -11,7 +11,7 @@ describe("runCommand", () => {
     const result = runCommand("nope");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe("(error) nope: command not found...");
+      expect(result.text).toBe("nope: command not found...");
       expect(result.isError).toBe(true);
     }
   });
@@ -20,9 +20,7 @@ describe("runCommand", () => {
     const result = runCommand("about extra");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe(
-        "(error) about: command does not accept arguments...",
-      );
+      expect(result.text).toBe("about: command does not accept arguments...");
     }
   });
 
@@ -32,9 +30,7 @@ describe("runCommand", () => {
     const result = runCommand("contact extra");
     expect(result.type).toBe("output");
     if (result.type === "output") {
-      expect(result.text).toBe(
-        "(error) contact: command does not accept arguments...",
-      );
+      expect(result.text).toBe("contact: command does not accept arguments...");
     }
 
     const help = runCommand("contact -h");
@@ -87,11 +83,16 @@ describe("runCommand", () => {
     },
   );
 
-  it("lets echo consume help-like arguments literally", () => {
-    expect(runCommand("echo -h")).toMatchObject({
-      type: "output",
-      text: "-h",
-    });
+  it("shows echo help for flags but keeps other words literal", () => {
+    for (const command of ["echo -h", "echo --help"]) {
+      const result = runCommand(command);
+      expect(result.type).toBe("output");
+      if (result.type === "output") {
+        expect(result.text).toContain("Usage: echo [text...]");
+        expect(result.text).toContain('echo "Halo" > notes/hello.txt');
+      }
+    }
+
     expect(runCommand("echo help")).toMatchObject({
       type: "output",
       text: "help",
@@ -102,22 +103,29 @@ describe("runCommand", () => {
     });
   });
 
-  it("keeps hidden eggs silent on every help variant", () => {
-    for (const command of [
-      "sudo -h",
-      "sudo --h",
-      "sudo -help",
-      "whoami --help",
-      "rm -h",
-    ]) {
-      const result = runCommand(command);
-      expect(result.type).toBe("output");
-      if (result.type === "output") {
-        expect(result.text).not.toContain("Usage:");
-        expect(result.text).not.toContain("Flags:");
-      }
-    }
+  it("rejects redirection for commands other than echo", () => {
+    expect(runCommand("ls > out.txt")).toMatchObject({
+      type: "output",
+      text: "ls: redirection is not supported...",
+      isError: true,
+    });
   });
+
+  it.each(["fastfetch", "rm", "sudo", "whoami"])(
+    "shows help for the %s easter egg",
+    (name) => {
+      for (const variant of [`${name} -h`, `${name} --help`, `${name} help`]) {
+        const result = runCommand(variant);
+        expect(result.type).toBe("output");
+        if (result.type === "output") {
+          expect(result.text).toContain("Usage:");
+          expect(result.text).toContain("Flags:");
+          expect(result.text).toContain("-h");
+          expect(result.text).toContain("--help");
+        }
+      }
+    },
+  );
 
   it("validates theme arguments", () => {
     expect(runCommand("theme dark")).toMatchObject({
@@ -129,7 +137,7 @@ describe("runCommand", () => {
     expect(invalid.type).toBe("output");
     if (invalid.type === "output") {
       expect(invalid.text).toBe(
-        "(error) theme: expected 'dark', 'light', or 'system'...",
+        "theme: expected 'dark', 'light', or 'system'...",
       );
     }
   });
@@ -216,10 +224,52 @@ describe("runCommand", () => {
     }
   });
 
-  it("keeps the fastfetch alias hidden from per-command help", () => {
+  it("shows per-command help for the fastfetch alias", () => {
     expect(runCommand("help")).toEqual({ type: "component", view: "help" });
 
     const aliasHelp = runCommand("fastfetch -h");
-    expect(aliasHelp).toEqual(runCommand("fastfetch"));
+    expect(aliasHelp.type).toBe("output");
+    if (aliasHelp.type === "output") {
+      expect(aliasHelp.text).toContain("Alias for neofetch");
+      expect(aliasHelp.text).toContain("Usage: fastfetch");
+    }
+  });
+
+  it("runs ls against the seeded filesystem", () => {
+    expect(runCommand("ls")).toMatchObject({
+      type: "output",
+      text: "Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos",
+    });
+    expect(runCommand("ls -a")).toMatchObject({
+      type: "output",
+      text: ".  ..  .bashrc  .config  .profile  Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos",
+    });
+    expect(runCommand("ls asdf")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "ls: cannot access 'asdf': No such file or directory",
+    });
+  });
+
+  it("runs rm with real shell errors and a filesystem snapshot", () => {
+    expect(runCommand("rm asdf")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "rm: cannot remove 'asdf': No such file or directory",
+    });
+    expect(runCommand("rm -rf /home/")).toMatchObject({
+      type: "output",
+      isError: true,
+      text: "rm: cannot remove '/home/': Permission denied",
+    });
+
+    const removed = runCommand("rm Documents/notes.txt");
+    expect(removed.type).toBe("blank");
+    if (removed.type !== "blank" || !removed.filesystem) {
+      throw new Error("Expected a filesystem mutation");
+    }
+    expect(
+      removed.filesystem.has("/home/rizkyfauziilmi/Documents/notes.txt"),
+    ).toBe(false);
   });
 });

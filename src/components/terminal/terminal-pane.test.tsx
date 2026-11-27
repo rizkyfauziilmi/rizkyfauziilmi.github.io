@@ -108,6 +108,22 @@ describe("TerminalPane", () => {
     expect(getHint(container)).toBeNull();
   });
 
+  it("renders the new prompt after cd and keeps old lines unchanged", () => {
+    const { container } = setup();
+    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+
+    type(textarea, "cd Documents");
+    fireEvent.keyDown(textarea, { key: "Enter" });
+
+    const prompts = [
+      ...container.querySelectorAll('[data-slot="input-group-addon"]'),
+    ];
+    expect(prompts.map((prompt) => prompt.textContent)).toEqual([
+      "rizkyfauziilmi@portofolio:~$",
+      "rizkyfauziilmi@portofolio:~/Documents$",
+    ]);
+  });
+
   it("opens a new prompt on Ctrl+C and keeps the interrupted line", () => {
     const { container } = setup();
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;

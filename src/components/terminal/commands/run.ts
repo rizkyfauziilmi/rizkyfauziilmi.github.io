@@ -1,14 +1,14 @@
 import { createDefaultCommandContext } from "./fetch";
-import { isHelpToken, supportsHelpFlags } from "./flags";
+import { wantsHelp } from "./flags";
 import { buildCommandHelp } from "./help";
-import { tokenize } from "./parse";
+import { parseRedirect, tokenize } from "./parse";
 import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandContext, CommandDefinition, CommandResult } from "./types";
 
 function rejectArguments(command: CommandDefinition): CommandResult {
   return {
     type: "output",
-    text: `(error) ${command.name}: command does not accept arguments...`,
+    text: `${command.name}: command does not accept arguments...`,
     isError: true,
   };
 }
@@ -21,7 +21,8 @@ export function runCommand(
   raw: string,
   context: CommandContext = createDefaultCommandContext(),
 ): CommandResult {
-  const [name, ...args] = tokenize(raw);
+  const { command: line, redirect } = parseRedirect(raw);
+  const [name, ...args] = tokenize(line);
   // Blank Enter still produces a result (an empty input line), never null.
   if (!name) return { type: "blank" };
 
@@ -29,14 +30,22 @@ export function runCommand(
   if (!command) {
     return {
       type: "output",
-      text: `(error) ${name}: command not found...`,
+      text: `${name}: command not found...`,
+      isError: true,
+    };
+  }
+
+  if (redirect && command.name !== "echo") {
+    return {
+      type: "output",
+      text: `${command.name}: redirection is not supported...`,
       isError: true,
     };
   }
 
   // Help flags are checked before argument validation so "theme -h" is not
   // rejected as a bad argument.
-  if (supportsHelpFlags(command) && isHelpToken(args[0])) {
+  if (wantsHelp(command, args[0])) {
     return { type: "output", text: buildCommandHelp(command), isError: false };
   }
 
@@ -45,5 +54,5 @@ export function runCommand(
     return rejectArguments(command);
   }
 
-  return command.run(args, context);
+  return command.run(args, redirect ? { ...context, redirect } : context);
 }

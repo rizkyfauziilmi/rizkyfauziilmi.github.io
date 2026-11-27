@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildCommandHelp, buildHelpModel, getCommandLabel } from "./help";
+import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandDefinition } from "./types";
 
 const command = (
@@ -44,6 +45,57 @@ describe("buildHelpModel", () => {
     expect(model.version).toBeTruthy();
   });
 
+  it("sorts commands alphabetically and keeps aliases by their primary", () => {
+    const shuffled = [
+      command({ name: "theme" }),
+      command({ name: "resume" }),
+      command({ name: "about" }),
+      command({ name: "fastfetch" }),
+      command({ name: "sudo", hidden: true }),
+      command({ name: "cv" }),
+      command({ name: "neofetch" }),
+      command({ name: "cat" }),
+    ];
+
+    expect(buildHelpModel(shuffled).commands.map((item) => item.name)).toEqual([
+      "about",
+      "cat",
+      "cv",
+      "resume",
+      "neofetch",
+      "fastfetch",
+      "theme",
+    ]);
+  });
+
+  it("orders the real registry for a tidy help screen", () => {
+    expect(
+      buildHelpModel(COMMAND_DEFINITIONS).commands.map((item) => item.name),
+    ).toEqual([
+      "about",
+      "cat",
+      "cd",
+      "clear",
+      "contact",
+      "cv",
+      "resume",
+      "echo",
+      "help",
+      "ls",
+      "mkdir",
+      "neofetch",
+      "fastfetch",
+      "projects",
+      "reboot",
+      "rm",
+      "shutdown",
+      "sudo",
+      "theme",
+      "touch",
+      "whoami",
+    ]);
+  });
+
   it("exposes completion tips as key/text parts", () => {
     const model = buildHelpModel([command({ name: "help" })]);
     const flattened = model.tips
@@ -59,7 +111,9 @@ describe("buildHelpModel", () => {
     expect(flattened).toContain("cycles matches");
     expect(flattened).toContain("inserts the selected match");
     expect(flattened).toContain("aborts the line and opens a new prompt");
-    expect(flattened).toContain("classic Unix troublemakers");
+    expect(flattened).toContain(
+      "classic Unix troublemakers are listed here too",
+    );
   });
 });
 
@@ -81,6 +135,18 @@ describe("buildCommandHelp", () => {
     expect(output).toContain("Examples:");
     expect(output).toContain("  shutdown now");
     expect(output).toContain("Flags:");
+  });
+
+  it("renders an Examples block for every visible registry command", () => {
+    for (const registryCommand of COMMAND_DEFINITIONS) {
+      if (registryCommand.hidden) continue;
+      const output = buildCommandHelp(registryCommand);
+
+      expect(output, registryCommand.name).toContain("Examples:");
+      for (const example of registryCommand.examples ?? []) {
+        expect(output).toContain(`  ${example}`);
+      }
+    }
   });
 
   it("lists declared flags alongside the help flags", () => {

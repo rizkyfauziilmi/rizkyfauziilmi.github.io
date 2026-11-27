@@ -11,7 +11,7 @@ export const HELP_FLAGS: readonly CommandFlag[] = [
 const HELP_WORD = "help";
 
 export function supportsHelpFlags(command: CommandDefinition) {
-  return !command.hidden && command.name !== "echo";
+  return !command.hidden;
 }
 
 export function getDeclaredFlags(command: CommandDefinition) {
@@ -36,4 +36,13 @@ export function getHelpTokens(command: CommandDefinition) {
 
 export function isHelpToken(value: string | undefined) {
   return value === HELP_WORD || HELP_FLAGS.some((flag) => flag.name === value);
+}
+
+/** Echo prints the word "help" literally instead of opening its own help. */
+export function wantsHelp(
+  command: CommandDefinition,
+  value: string | undefined,
+) {
+  if (!supportsHelpFlags(command) || !isHelpToken(value)) return false;
+  return !(command.name === "echo" && value === HELP_WORD);
 }

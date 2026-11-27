@@ -7,6 +7,7 @@ import {
   getHelpTokens,
   isHelpToken,
   supportsHelpFlags,
+  wantsHelp,
 } from "./flags";
 import { COMMAND_DEFINITIONS } from "./registry";
 import type { CommandDefinition } from "./types";
@@ -26,9 +27,9 @@ function registryCommand(name: string) {
 }
 
 describe("command flags", () => {
-  it("supports help flags only for visible non-echo commands", () => {
+  it("supports help flags for every visible command", () => {
     expect(supportsHelpFlags(command({ name: "theme" }))).toBe(true);
-    expect(supportsHelpFlags(command({ name: "echo" }))).toBe(false);
+    expect(supportsHelpFlags(command({ name: "echo" }))).toBe(true);
     expect(supportsHelpFlags(command({ name: "sudo", hidden: true }))).toBe(
       false,
     );
@@ -45,8 +46,23 @@ describe("command flags", () => {
     expect(isHelpToken(undefined)).toBe(false);
   });
 
-  it("returns no help flags for hidden or echo commands", () => {
-    expect(getHelpFlags(command({ name: "echo" }))).toEqual([]);
+  it("shows echo help for flags but prints a literal help word", () => {
+    const echo = command({ name: "echo" });
+
+    expect(wantsHelp(echo, "-h")).toBe(true);
+    expect(wantsHelp(echo, "--help")).toBe(true);
+    expect(wantsHelp(echo, "help")).toBe(false);
+    expect(wantsHelp(command({ name: "about" }), "help")).toBe(true);
+    expect(wantsHelp(command({ name: "sudo", hidden: true }), "-h")).toBe(
+      false,
+    );
+  });
+
+  it("returns help flags for echo but not for hidden commands", () => {
+    expect(getHelpFlags(command({ name: "echo" }))).toEqual([
+      { name: "-h", description: "Display this help text" },
+      { name: "--help", description: "Display this help text" },
+    ]);
     expect(getHelpFlags(command({ name: "sudo", hidden: true }))).toEqual([]);
   });
 
@@ -61,10 +77,28 @@ describe("command flags", () => {
     expect(output.map((flag) => flag.name)).toEqual(["-x", "-h", "--help"]);
   });
 
-  it("keeps rm's declared flags without advertising help", () => {
+  it("adds help flags to rm's declared flags", () => {
     const rm = registryCommand("rm");
 
-    expect(getDeclaredFlags(rm).map((flag) => flag.name)).toEqual(["-r", "-R"]);
-    expect(getCommandFlags(rm).map((flag) => flag.name)).toEqual(["-r", "-R"]);
+    expect(getDeclaredFlags(rm).map((flag) => flag.name)).toEqual([
+      "-r",
+      "-R",
+      "-f",
+    ]);
+    expect(getCommandFlags(rm).map((flag) => flag.name)).toEqual([
+      "-r",
+      "-R",
+      "-f",
+      "-h",
+      "--help",
+    ]);
+  });
+
+  it("advertises help flags for every easter egg", () => {
+    for (const name of ["fastfetch", "rm", "sudo", "whoami"]) {
+      expect(
+        getHelpFlags(registryCommand(name)).map((flag) => flag.name),
+      ).toEqual(["-h", "--help"]);
+    }
   });
 });

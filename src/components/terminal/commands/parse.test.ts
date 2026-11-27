@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { tokenize, tokenizeWithSpans } from "./parse";
+import { parseRedirect, tokenize, tokenizeWithSpans } from "./parse";
 
 describe("tokenize", () => {
   it("splits plain input and ignores extra whitespace", () => {
@@ -66,5 +66,57 @@ describe("tokenizeWithSpans", () => {
 
   it("returns no spans for blank input", () => {
     expect(tokenizeWithSpans(" \t ")).toEqual([]);
+  });
+});
+
+describe("parseRedirect", () => {
+  it("leaves lines without an operator untouched", () => {
+    expect(parseRedirect('echo "hello world"')).toEqual({
+      command: 'echo "hello world"',
+    });
+  });
+
+  it("splits overwrite and append operators outside quotes", () => {
+    expect(parseRedirect("echo hi > notes.txt")).toEqual({
+      command: "echo hi ",
+      redirect: { operator: ">", target: "notes.txt", ambiguous: false },
+    });
+    expect(parseRedirect("echo hi >> notes.txt")).toEqual({
+      command: "echo hi ",
+      redirect: { operator: ">>", target: "notes.txt", ambiguous: false },
+    });
+  });
+
+  it("treats an operator inside quotes as literal text", () => {
+    expect(parseRedirect('echo "a > b"')).toEqual({
+      command: 'echo "a > b"',
+    });
+    expect(parseRedirect("echo 'a >> b'")).toEqual({
+      command: "echo 'a >> b'",
+    });
+  });
+
+  it("keeps a quoted target with spaces as one token", () => {
+    expect(parseRedirect('echo hi > "my notes.txt"')).toEqual({
+      command: "echo hi ",
+      redirect: {
+        operator: ">",
+        target: "my notes.txt",
+        ambiguous: false,
+      },
+    });
+  });
+
+  it("flags missing and ambiguous targets", () => {
+    expect(parseRedirect("echo hi >").redirect).toEqual({
+      operator: ">",
+      target: "",
+      ambiguous: false,
+    });
+    expect(parseRedirect("echo hi > a b").redirect).toEqual({
+      operator: ">",
+      target: "a",
+      ambiguous: true,
+    });
   });
 });

@@ -2,6 +2,7 @@ import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { PROMPT } from "../constants";
 import { BlockCaretInput } from "./block-caret-input";
 import { CommandHighlight } from "./command-highlight";
 import { TerminalInputLine } from "./terminal-input-line";
@@ -11,6 +12,7 @@ function renderInput() {
     <BlockCaretInput
       inputRef={createRef<HTMLTextAreaElement>()}
       value="help"
+      prompt={PROMPT}
       onChange={() => {}}
       onHistoryNavigate={() => false}
       onSubmit={() => {}}
@@ -56,7 +58,7 @@ describe("CommandHighlight", () => {
 
 describe("TerminalInputLine", () => {
   it("keeps the submitted text and highlights known commands", () => {
-    render(<TerminalInputLine text="help" />);
+    render(<TerminalInputLine text="help" prompt={PROMPT} />);
 
     const token = screen.getByText("help");
     expect(token.getAttribute("data-highlight-kind")).toBe("command");

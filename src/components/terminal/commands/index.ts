@@ -1,4 +1,8 @@
-export { COMMAND_CATALOG, KNOWN_COMMAND_NAMES } from "./catalog";
+export {
+  COMMAND_CATALOG,
+  createCompletionCatalog,
+  KNOWN_COMMAND_NAMES,
+} from "./catalog";
 export {
   applyCandidate,
   completeCommand,

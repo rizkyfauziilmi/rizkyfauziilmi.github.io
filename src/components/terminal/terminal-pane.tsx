@@ -10,7 +10,7 @@ import {
 import { InputGroup } from "@/components/ui/input-group";
 import { useTerminalShell } from "@/hooks";
 import type { TuiView } from "./commands";
-import { PROMPT } from "./constants";
+import { buildPrompt } from "./constants";
 import { BlockCaretInput, TerminalPrompt } from "./input";
 import { CommandSuggestions, HaltedScreen, TerminalEntryView } from "./output";
 import { ContactTui, CvTui, ProjectsTui } from "./tui";
@@ -33,6 +33,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
   const {
     entries,
     value,
+    cwd,
     isHalted,
     activeTui,
     changeValue,
@@ -49,6 +50,7 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
     leaveTui,
     powerOn,
   } = useTerminalShell({ inputRef, focusInput });
+  const prompt = buildPrompt(cwd);
 
   const scrollToEnd = useCallback(() => {
     const container = scrollRef.current;
@@ -95,10 +97,11 @@ export function TerminalPane({ inputRef, focusInput }: TerminalPaneProps) {
             <TerminalEntryView key={entry.id} entry={entry} />
           ))}
           <InputGroup variant="none-style">
-            <TerminalPrompt prompt={PROMPT} />
+            <TerminalPrompt prompt={prompt} />
             <BlockCaretInput
               inputRef={inputRef}
               value={value}
+              prompt={prompt}
               onChange={changeValue}
               onHistoryNavigate={navigate}
               onComplete={complete}

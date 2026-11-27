@@ -1,3 +1,4 @@
+import { PROMPT } from "../constants";
 import { TerminalInputLine } from "../input";
 import type { TerminalEntry } from "../types";
 import { TerminalOutputLine } from "./terminal-output-line";
@@ -6,7 +7,9 @@ import { TERMINAL_VIEWS } from "./views";
 // One place that turns serializable history data into rendered output.
 export function TerminalEntryView({ entry }: { entry: TerminalEntry }) {
   if (entry.kind === "input") {
-    return <TerminalInputLine text={entry.text} />;
+    return (
+      <TerminalInputLine text={entry.text} prompt={entry.prompt ?? PROMPT} />
+    );
   }
 
   const View = entry.view ? TERMINAL_VIEWS[entry.view] : null;
