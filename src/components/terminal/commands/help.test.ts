@@ -137,6 +137,18 @@ describe("buildCommandHelp", () => {
     expect(output).toContain("Flags:");
   });
 
+  it("renders an Examples block for every visible registry command", () => {
+    for (const registryCommand of COMMAND_DEFINITIONS) {
+      if (registryCommand.hidden) continue;
+      const output = buildCommandHelp(registryCommand);
+
+      expect(output, registryCommand.name).toContain("Examples:");
+      for (const example of registryCommand.examples ?? []) {
+        expect(output).toContain(`  ${example}`);
+      }
+    }
+  });
+
   it("lists declared flags alongside the help flags", () => {
     const output = buildCommandHelp(
       command({

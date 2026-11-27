@@ -77,6 +77,7 @@ const SHUTDOWN_COMMAND: CommandDefinition = {
 const FETCH_COMMAND: CommandDefinition = {
   name: "neofetch",
   description: "Show system and portfolio info",
+  examples: ["neofetch"],
   run: (_args, context) => ({
     type: "output",
     text: buildFetchOutput(context),
@@ -130,6 +131,7 @@ const RESUME_COMMAND = createCvCommand("resume", "Alias for cv");
 const CONTACT_COMMAND: CommandDefinition = {
   name: "contact",
   description: "Find me and get in touch",
+  examples: ["contact"],
   suggestInAbout: true,
   run: () => ({ type: "tui", view: "contact" }),
 };
@@ -544,6 +546,7 @@ function runRmCommand(
 const RM_COMMAND: CommandDefinition = {
   name: "rm",
   description: "Remove files or directories",
+  examples: ["rm notes.txt", "rm -r notes", "rm -f missing.txt"],
   flags: [
     { name: "-r", description: "Remove directories recursively" },
     { name: "-R", description: "Alias for -r" },
@@ -558,11 +561,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "about",
     description: "Show a short introduction",
+    examples: ["about"],
     run: () => ({ type: "component", view: "about" }),
   },
   {
     name: "clear",
     description: "Clear the terminal screen",
+    examples: ["clear"],
     run: () => ({ type: "clear" }),
   },
   CAT_COMMAND,
@@ -571,6 +576,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "help",
     description: "Display this help message",
+    examples: ["help"],
     // HelpOutput reads the registry directly; the result stays plain data.
     run: () => ({ type: "component", view: "help" }),
   },
@@ -581,6 +587,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "projects",
     description: "Browse projects in an interactive TUI",
+    examples: ["projects"],
     suggestInAbout: true,
     run: () => ({ type: "tui", view: "projects" }),
   },
@@ -590,6 +597,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "reboot",
     description: "Reboot the terminal (reload the page)",
+    examples: ["reboot"],
     run: () => ({ type: "reboot", text: "Rebooting..." }),
   },
   SHUTDOWN_COMMAND,
@@ -606,6 +614,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
         values: ["system"],
       },
     ],
+    examples: ["theme dark", "theme light", "theme system"],
     acceptsArgs: true,
     run: (args): CommandResult => {
       const [mode] = args;
@@ -624,11 +633,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     ...FETCH_COMMAND,
     name: "fastfetch",
     description: "Alias for neofetch",
+    examples: ["fastfetch"],
     acceptsArgs: true,
   },
   {
     name: "sudo",
     description: "Run a command as superuser",
+    examples: ["sudo"],
     acceptsArgs: true,
     run: () => ({
       type: "output",
@@ -640,6 +651,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: "whoami",
     description: "Print the current user",
+    examples: ["whoami"],
     acceptsArgs: true,
     run: () => ({
       type: "output",

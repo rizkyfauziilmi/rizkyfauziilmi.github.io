@@ -39,6 +39,18 @@ describe("about suggestions", () => {
   });
 });
 
+describe("command examples", () => {
+  it("gives every visible command at least one example", () => {
+    for (const command of COMMAND_DEFINITIONS) {
+      if (command.hidden) continue;
+      expect(
+        command.examples?.length,
+        `${command.name} has no examples`,
+      ).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("easter eggs", () => {
   it("lists fastfetch, sudo, rm and whoami as visible commands", () => {
     for (const name of ["fastfetch", "sudo", "rm", "whoami"]) {
