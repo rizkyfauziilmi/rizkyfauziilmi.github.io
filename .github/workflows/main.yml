@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
   build:
+    # workflow_dispatch can run on any branch; only main is deployable.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -89,3 +91,17 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Smoke test
+        env:
+          URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for i in $(seq 1 15); do
+            if curl --fail --silent --show-error --location "$URL" > /dev/null; then
+              echo "Deployed site responded OK: $URL"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Deployed site did not respond OK: $URL" >&2
+          exit 1
