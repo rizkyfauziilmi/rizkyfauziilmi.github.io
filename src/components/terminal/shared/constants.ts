@@ -1,4 +1,4 @@
-import { HOME_PATH } from "./filesystem";
+import { HOME_PATH } from "../filesystem";
 
 export const APP_USER = "rizkyfauziilmi";
 export const APP_HOST = "portofolio";

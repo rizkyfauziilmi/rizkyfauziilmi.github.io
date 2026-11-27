@@ -2,7 +2,7 @@ import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { PROMPT } from "../constants";
+import { PROMPT } from "../shared";
 import { BlockCaretInput } from "./block-caret-input";
 import { CommandHighlight } from "./command-highlight";
 import { TerminalInputLine } from "./terminal-input-line";

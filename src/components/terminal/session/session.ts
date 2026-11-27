@@ -1,11 +1,10 @@
-import type { CommandResult, TuiView } from "./commands";
-import { buildPrompt } from "./constants";
+import type { CommandResult, TuiView } from "../commands";
 import {
   createInitialFileSystem,
   HOME_PATH,
   type VirtualFileSystem,
-} from "./filesystem";
-import type { TerminalEntry } from "./types";
+} from "../filesystem";
+import { buildPrompt, type TerminalEntry } from "../shared";
 
 export type PendingAction =
   | { kind: "reboot" }

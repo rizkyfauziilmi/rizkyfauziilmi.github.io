@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import type { TerminalView, TerminalViewProps } from "../types";
+import type { TerminalView, TerminalViewProps } from "../shared";
 import { AboutOutput } from "./about-output";
 import { HelpOutput } from "./help-output";
 import { ThemeOutput } from "./theme-output";

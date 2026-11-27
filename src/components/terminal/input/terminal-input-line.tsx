@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { getPromptWidth, LINE_CLASSNAME } from "../constants";
+import { getPromptWidth, LINE_CLASSNAME } from "../shared";
 import { CommandHighlight } from "./command-highlight";
 import { TerminalPrompt } from "./terminal-prompt";
 

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 import { InputGroupTextarea } from "@/components/ui/input-group";
 import { useBlockCaret, type HistoryDirection } from "@/hooks";
-import { getPromptWidth, INPUT_CLASSNAME } from "../constants";
+import { getPromptWidth, INPUT_CLASSNAME } from "../shared";
 import { BlockCaret } from "./block-caret";
 import { CaretMirror } from "./caret-mirror";
 import { CommandHighlight } from "./command-highlight";

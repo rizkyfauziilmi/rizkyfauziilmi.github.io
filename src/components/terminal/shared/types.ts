@@ -1,4 +1,4 @@
-import type { ComponentView, ThemeMode } from "./commands";
+import type { ComponentView, ThemeMode } from "../commands";
 
 export type TerminalView = ComponentView | "theme";
 

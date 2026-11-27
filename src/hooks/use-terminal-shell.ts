@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type RefObject } from "react";
 
 import { createCompletionCatalog } from "@/components/terminal/commands";
-import { INTERRUPT_MARKER } from "@/components/terminal/constants";
+import { INTERRUPT_MARKER } from "@/components/terminal/shared";
 import { useCommandCompletion } from "./use-command-completion";
 import {
   useCommandHistory,

@@ -1,6 +1,5 @@
-import { PROMPT } from "../constants";
 import { TerminalInputLine } from "../input";
-import type { TerminalEntry } from "../types";
+import { PROMPT, type TerminalEntry } from "../shared";
 import { TerminalOutputLine } from "./terminal-output-line";
 import { TERMINAL_VIEWS } from "./views";
 

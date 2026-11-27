@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/toast";
-import { CV } from "./data";
+import { CV } from "../data";
 
 export type DownloadTarget = {
   url: string;

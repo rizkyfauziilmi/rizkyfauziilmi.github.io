@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { getCommandLabel } from "../commands/help";
 import { COMMAND_DEFINITIONS } from "../commands/registry";
-import type { TerminalEntry } from "../types";
+import type { TerminalEntry } from "../shared";
 import { HelpOutput } from "./help-output";
 import { TerminalEntryView } from "./terminal-entry-view";
 
